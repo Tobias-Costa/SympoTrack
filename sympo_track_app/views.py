@@ -1,5 +1,8 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, redirect
 
 # Create your views here.
 def index(request):
-    return HttpResponse("It's working")
+    return redirect("login")
+
+def login(request):
+    return render(request, "login.html")
