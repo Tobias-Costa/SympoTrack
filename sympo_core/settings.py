@@ -29,8 +29,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-
+AUTH_USER_MODEL = 'sympo_track_app.User'
+LOGIN_URL = '/'
 # Application definition
 
 INSTALLED_APPS = [
@@ -112,7 +112,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'sympo_track_app.CustomUser'
+# settings.py para TESTE (exibe no terminal)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# settings.py para PRODUÇÃO(USAR OS.GETENV)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = '://gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'seu-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'sua-senha-de-aplicativo' # Não é a senha normal!
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
