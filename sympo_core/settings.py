@@ -31,6 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'sympo_track_app.User'
 LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/'
 # Application definition
 
 INSTALLED_APPS = [
@@ -58,7 +59,7 @@ ROOT_URLCONF = 'sympo_core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
