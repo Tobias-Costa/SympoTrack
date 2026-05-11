@@ -1,6 +1,181 @@
-<h2>Log In</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form }}
-  <button type="submit">Log In</button>
-</form>
+{% extends 'base.html' %}
+
+{% block title %}
+Login | SympoTrack
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center align-items-center">
+
+    <div class="col-12 col-lg-10 col-xl-9">
+
+        <div class="card auth-card">
+
+
+          <!-- Para mobile a ordem vai ser inversa -->
+            <div class="row g-0">
+
+                <!-- Lado esquerdo -->
+                <div class="col-lg-6 auth-left d-none d-lg-flex flex-column justify-content-center">
+
+                    <div>
+                        <h1 class="mb-3">
+                            Bem-vindo ao SympoTrack
+                        </h1>
+
+                        <p class="mb-5">
+                            Plataforma inteligente para gestão e lembretes
+                            de eventos acadêmicos, simpósios, congressos e
+                            conferências.
+                        </p>
+
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="feature-icon me-3">
+                                <i class="bi bi-calendar-check fs-5"></i>
+                            </div>
+
+                            <div>
+                                <h6 class="mb-1">Organize Eventos</h6>
+                                <small>
+                                    Gerencie cronogramas e atividades acadêmicas
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="feature-icon me-3">
+                                <i class="bi bi-bell fs-5"></i>
+                            </div>
+
+                            <div>
+                                <h6 class="mb-1">Receba Lembretes</h6>
+                                <small>
+                                    Nunca perca prazos importantes
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <div class="feature-icon me-3">
+                                <i class="bi bi-people fs-5"></i>
+                            </div>
+
+                            <div>
+                                <h6 class="mb-1">Conecte Pesquisadores</h6>
+                                <small>
+                                    Centralize eventos e participantes
+                                </small>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Lado direito -->
+                <div class="col-lg-6 auth-right d-flex align-items-center">
+
+                    <div class="w-100">
+
+                        <div class="text-center mb-4">
+
+                            <h2 class="fw-bold">
+                                Entrar
+                            </h2>
+
+                            <p class="text-muted">
+                                Acesse sua conta para continuar
+                            </p>
+
+                        </div>
+
+                        <form method="post">
+
+                            {% csrf_token %}
+
+                            {% if form.errors %}
+                                <div class="alert alert-danger">
+                                    Usuário ou senha inválidos.
+                                </div>
+                            {% endif %}
+
+                            <!-- Email -->
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Email
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+                                        <i class="bi bi-person"></i>
+                                    </span>
+                                      
+                                    {{ form.username }}
+
+                                </div>
+
+                            </div>
+
+                            <!-- Password -->
+                            <div class="mb-4">
+
+                                <label class="form-label">
+                                    Senha
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+
+                                    {{ form.password }}
+
+                                </div>
+
+                            </div>
+
+                            <!-- Botão -->
+                            <div class="d-grid mb-3">
+
+                                <button type="submit"
+                                        class="btn btn-primary btn-lg">
+
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                                    Entrar
+
+                                </button>
+
+                            </div>
+
+                            <!-- Extras -->
+                            <div class="text-center">
+
+                                <small class="text-muted">
+                                    Não possui conta?
+                                    <a href="#"
+                                       class="text-decoration-none fw-semibold">
+                                        Cadastre-se
+                                    </a>
+                                </small>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

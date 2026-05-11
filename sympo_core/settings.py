@@ -30,8 +30,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'sympo_track_app.User'
-LOGIN_URL = '/'
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/account/login/'
+
 # Application definition
 
 INSTALLED_APPS = [
