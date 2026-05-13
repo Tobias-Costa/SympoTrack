@@ -1,25 +1,104 @@
 {% extends "account/base_manage.html" %}
+
 {% load allauth i18n %}
+
+
+<!-- TÍTULO -->
 {% block head_title %}
     {% trans "Sign Out" %}
 {% endblock head_title %}
+
+
+<!-- CONTEÚDO -->
 {% block content %}
-    {% element h1 %}
-        {% trans "Sign Out" %}
-    {% endelement %}
-    {% element p %}
-        {% trans 'Are you sure you want to sign out?' %}
-    {% endelement %}
-    {% url 'account_logout' as action_url %}
-    {% element form method="post" action=action_url no_visible_fields=True %}
-        {% slot body %}
-            {% csrf_token %}
-            {{ redirect_field }}
-        {% endslot %}
-        {% slot actions %}
-            {% element button type="submit" %}
-                {% trans 'Sign Out' %}
-            {% endelement %}
-        {% endslot %}
-    {% endelement %}
+
+<div class="container-fluid">
+
+    <div class="row justify-content-center align-items-center min-vh-100 py-4">
+
+        <!-- CARD -->
+        <div class="col-11 col-sm-10 col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+
+            <div class="card global-card border-0 shadow-sm">
+
+                <div class="card-body p-4 p-md-5 text-center">
+
+                    <!-- ÍCONE -->
+                    <div class="mb-4">
+
+                        <i class="bi bi-box-arrow-right text-danger"
+                           style="font-size: clamp(3rem, 5vw, 4rem);"></i>
+
+                    </div>
+
+
+                    <!-- TÍTULO -->
+                    <h1 class="fw-bold mb-3">
+
+                        Sair da Conta
+
+                    </h1>
+
+
+                    <!-- DESCRIÇÃO -->
+                    <p class="text-muted mb-5">
+
+                        Tem certeza de que deseja encerrar sua sessão?
+
+                    </p>
+
+
+                    <!-- FORMULÁRIO -->
+                    {% url 'account_logout' as action_url %}
+
+                    {% element form method="post" action=action_url no_visible_fields=True %}
+
+                        {% slot body %}
+
+                            {% csrf_token %}
+
+                            {{ redirect_field }}
+
+                        {% endslot %}
+
+
+                        <!-- BOTÕES -->
+                        {% slot actions %}
+
+                            <div class="d-grid gap-3">
+
+                                <!-- BOTÃO SAIR -->
+                                {% element button type="submit" %}
+
+                                    <i class="bi bi-box-arrow-right me-2"></i>
+                                    Sair
+
+                                {% endelement %}
+
+
+                                <!-- VOLTAR -->
+                                <a href="/sympotrack/"
+                                   class="btn btn-outline-secondary">
+
+                                    <i class="bi bi-arrow-left me-2"></i>
+                                    Cancelar
+
+                                </a>
+
+                            </div>
+
+                        {% endslot %}
+
+                    {% endelement %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 {% endblock content %}
