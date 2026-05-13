@@ -31,8 +31,17 @@ DEBUG = True
 ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'sympo_track_app.User'
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/'
+# LOGIN_REDIRECT_URL = '/sympotrack/'
 LOGOUT_REDIRECT_URL = '/account/login/'
+
+# Método de autenticação: email, username ou username_email
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
+# E-mail obrigatório
+ACCOUNT_EMAIL_REQUIRED = True
+
+# E-mail deve ser único no banco de dados
+ACCOUNT_UNIQUE_EMAIL = True
 
 # Application definition
 
@@ -43,6 +52,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'allauth',
+    'allauth.account',
     'sympo_track_app',
 ]
 
@@ -54,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'sympo_core.urls'
@@ -71,6 +84,14 @@ TEMPLATES = [
             ],
         },
     },
+]
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 WSGI_APPLICATION = 'sympo_core.wsgi.application'
