@@ -32,13 +32,13 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'sympo_track_app.User'
 LOGIN_URL = '/accounts/login/'
 # LOGIN_REDIRECT_URL = '/sympotrack/'
-LOGOUT_REDIRECT_URL = '/account/login/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # Método de autenticação: email, username ou username_email
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGIN_METHODS = {'email'}
 
 # E-mail obrigatório
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 # E-mail deve ser único no banco de dados
 ACCOUNT_UNIQUE_EMAIL = True
@@ -53,9 +53,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'sympo_track_app',
     'allauth',
     'allauth.account',
-    'sympo_track_app',
 ]
 
 MIDDLEWARE = [
