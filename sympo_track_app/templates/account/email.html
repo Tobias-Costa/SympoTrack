@@ -1,83 +1,293 @@
 {% extends "account/base_manage_email.html" %}
+
 {% load static allauth i18n %}
+
+
+<!-- TÍTULO -->
 {% block head_title %}
     {% trans "Email Addresses" %}
 {% endblock head_title %}
+
+
+<!-- CONTEÚDO -->
 {% block content %}
-    {% element h1 %}
-        {% trans "Email Addresses" %}
-    {% endelement %}
-    {% if emailaddresses %}
-        {% element p %}
-            {% trans 'The following email addresses are associated with your account:' %}
-        {% endelement %}
-        {% url 'account_email' as email_url %}
-        {% element form form=form action=email_url method="post" tags="email,list" %}
-            {% slot body %}
-                {% csrf_token %}
-                {% for radio in emailaddress_radios %}
-                    {% with emailaddress=radio.emailaddress %}
-                        {% element field type="radio" checked=radio.checked name="email" value=emailaddress.email id=radio.id %}
-                            {% slot label %}
-                                {{ emailaddress.email }}
-                                {% if emailaddress.verified %}
-                                    {% element badge tags="success,email,verified" %}
-                                        {% translate "Verified" %}
-                                    {% endelement %}
-                                {% else %}
-                                    {% element badge tags="warning,email,unverified" %}
-                                        {% translate "Unverified" %}
-                                    {% endelement %}
-                                {% endif %}
-                                {% if emailaddress.primary %}
-                                    {% element badge tags="email,primary" %}
-                                        {% translate "Primary" %}
-                                    {% endelement %}
-                                {% endif %}
+
+<div class="container-fluid">
+
+    <div class="row justify-content-center py-4">
+
+        <div class="col-12 col-lg-10 col-xl-8">
+
+            <!-- CARD PRINCIPAL -->
+            <div class="card global-card border-0 shadow-sm mb-4">
+
+                <div class="card-body p-4 p-md-5">
+
+                    <!-- CABEÇALHO -->
+                    <div class="text-center mb-5">
+
+                        <div class="mb-3">
+
+                            <i class="bi bi-envelope text-primary"
+                               style="font-size: clamp(3rem, 5vw, 4rem);"></i>
+
+                        </div>
+
+                        <h1 class="fw-bold mb-3">
+
+                            Endereços de E-mail
+
+                        </h1>
+
+                        <p class="text-muted mb-0">
+
+                            Gerencie os e-mails vinculados à sua conta
+
+                        </p>
+
+                    </div>
+
+
+                    <!-- LISTA DE EMAILS -->
+                    {% if emailaddresses %}
+
+                        <p class="text-muted mb-4">
+
+                            Os seguintes e-mails estão associados à sua conta:
+
+                        </p>
+
+                        {% url 'account_email' as email_url %}
+
+                        {% element form form=form action=email_url method="post" tags="email,list" %}
+
+                            {% slot body %}
+
+                                {% csrf_token %}
+
+                                <div class="d-flex flex-column gap-3">
+
+                                    {% for radio in emailaddress_radios %}
+
+                                        {% with emailaddress=radio.emailaddress %}
+
+                                            <div class="border rounded-4 p-3">
+
+                                                <div class="form-check">
+
+                                                    <input class="form-check-input"
+                                                           type="radio"
+                                                           name="email"
+                                                           value="{{ emailaddress.email }}"
+                                                           id="{{ radio.id }}"
+                                                           {% if radio.checked %}checked{% endif %}>
+
+                                                    <label class="form-check-label w-100"
+                                                           for="{{ radio.id }}">
+
+                                                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+
+                                                            <!-- EMAIL -->
+                                                            <div class="fw-semibold">
+
+                                                                {{ emailaddress.email }}
+
+                                                            </div>
+
+
+                                                            <!-- BADGES -->
+                                                            <div class="d-flex flex-wrap gap-2">
+
+                                                                {% if emailaddress.verified %}
+
+                                                                    <span class="badge bg-success">
+
+                                                                        Verificado
+
+                                                                    </span>
+
+                                                                {% else %}
+
+                                                                    <span class="badge bg-warning text-dark">
+
+                                                                        Não verificado
+
+                                                                    </span>
+
+                                                                {% endif %}
+
+                                                                {% if emailaddress.primary %}
+
+                                                                    <span class="badge bg-primary">
+
+                                                                        Principal
+
+                                                                    </span>
+
+                                                                {% endif %}
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </label>
+
+                                                </div>
+
+                                            </div>
+
+                                        {% endwith %}
+
+                                    {% endfor %}
+
+                                </div>
+
                             {% endslot %}
+
+
+                            <!-- AÇÕES -->
+                            {% slot actions %}
+
+                                <div class="d-grid d-md-flex gap-3 mt-4">
+
+                                    <!-- PRINCIPAL -->
+                                    {% element button type="submit" name="action_primary" %}
+
+                                        <i class="bi bi-star me-2"></i>
+                                        Tornar Principal
+
+                                    {% endelement %}
+
+
+                                    <!-- REENVIAR -->
+                                    {% element button tags="secondary" type="submit" name="action_send" %}
+
+                                        <i class="bi bi-envelope-check me-2"></i>
+                                        Reenviar Verificação
+
+                                    {% endelement %}
+
+
+                                    <!-- REMOVER -->
+                                    {% element button tags="danger,delete" type="submit" name="action_remove" %}
+
+                                        <i class="bi bi-trash me-2"></i>
+                                        Remover
+
+                                    {% endelement %}
+
+                                </div>
+
+                            {% endslot %}
+
                         {% endelement %}
-                    {% endwith %}
-                {% endfor %}
-            {% endslot %}
-            {% slot actions %}
-                {% element button type="submit" name="action_primary" %}
-                    {% trans 'Make Primary' %}
-                {% endelement %}
-                {% element button tags="secondary" type="submit" name="action_send" %}
-                    {% trans 'Re-send Verification' %}
-                {% endelement %}
-                {% element button tags="danger,delete" type="submit" name="action_remove" %}
-                    {% trans 'Remove' %}
-                {% endelement %}
-            {% endslot %}
-        {% endelement %}
-    {% else %}
-        {% include "account/snippets/warn_no_email.html" %}
-    {% endif %}
-    {% if can_add_email %}
-        {% element h2 %}
-            {% trans "Add Email Address" %}
-        {% endelement %}
-        {% url 'account_email' as action_url %}
-        {% element form form=form method="post" action=action_url tags="email,add" %}
-            {% slot body %}
-                {% csrf_token %}
-                {% element fields form=form %}
-                {% endelement %}
-            {% endslot %}
-            {% slot actions %}
-                {% element button name="action_add" type="submit" %}
-                    {% trans "Add Email" %}
-                {% endelement %}
-            {% endslot %}
-        {% endelement %}
-    {% endif %}
+
+                    {% else %}
+
+                        <!-- SEM EMAIL -->
+                        <div class="alert alert-warning border-0 rounded-4">
+
+                            {% include "account/snippets/warn_no_email.html" %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- ADICIONAR EMAIL -->
+            {% if can_add_email %}
+
+                <div class="card global-card border-0 shadow-sm">
+
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="mb-4">
+
+                            <h2 class="fw-bold mb-2">
+
+                                Adicionar Novo E-mail
+
+                            </h2>
+
+                            <p class="text-muted mb-0">
+
+                                Vincule outro endereço de e-mail à sua conta
+
+                            </p>
+
+                        </div>
+
+
+                        {% url 'account_email' as action_url %}
+
+                        {% element form form=form method="post" action=action_url tags="email,add" %}
+
+                            {% slot body %}
+
+                                {% csrf_token %}
+
+                                <div class="mb-4">
+
+                                    {% element fields form=form %}
+                                    {% endelement %}
+
+                                </div>
+
+                            {% endslot %}
+
+
+                            {% slot actions %}
+
+                                <div class="d-grid d-md-inline">
+
+                                    {% element button name="action_add" type="submit" %}
+
+                                        <i class="bi bi-plus-circle me-2"></i>
+                                        Adicionar E-mail
+
+                                    {% endelement %}
+
+                                </div>
+
+                            {% endslot %}
+
+                        {% endelement %}
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
 {% endblock content %}
+
+
+<!-- SCRIPTS -->
 {% block extra_body %}
-    <script src="{% static 'account/js/account.js' %}"></script>
-    <script src="{% static 'account/js/onload.js' %}"></script>
-    <script data-allauth-onload="allauth.account.forms.manageEmailForm" type="application/json">{
-    "i18n": {"confirmDelete": "{% trans 'Do you really want to remove the selected email address?' %}"}
+
+<script src="{% static 'account/js/account.js' %}"></script>
+
+<script src="{% static 'account/js/onload.js' %}"></script>
+
+<script data-allauth-onload="allauth.account.forms.manageEmailForm"
+        type="application/json">
+
+{
+    "i18n": {
+        "confirmDelete": "{% trans 'Do you really want to remove the selected email address?' %}"
+    }
 }
-    </script>
+
+</script>
+
 {% endblock extra_body %}
