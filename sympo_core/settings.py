@@ -31,7 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'sympo_track_app.User'
 LOGIN_URL = '/accounts/login/'
-# LOGIN_REDIRECT_URL = '/sympotrack/'
+LOGIN_REDIRECT_URL = '/sympotrack/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # Método de autenticação: email, username ou username_email
