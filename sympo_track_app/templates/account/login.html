@@ -1,0 +1,210 @@
+{% extends "account/base_entrance.html" %}
+
+{% load i18n %}
+{% load allauth account %}
+
+
+<!-- TÍTULO -->
+{% block head_title %}
+    {% trans "Sign In" %}
+{% endblock head_title %}
+
+
+<!-- CONTEÚDO -->
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="row justify-content-center align-items-center min-vh-100 py-4">
+
+        <!-- CARD RESPONSIVO -->
+        <div class="col-11 col-sm-10 col-md-9 col-lg-8 col-xl-7 col-xxl-6">
+
+            <div class="card global-card border-0 shadow-sm">
+
+                <div class="card-body p-4 p-md-5 p-xl-5">
+
+                    <!-- LOGO -->
+                    <div class="text-center mb-5">
+
+                        <div class="mb-3">
+
+                            <i class="bi bi-calendar-event text-primary"
+                               style="font-size: clamp(3rem, 4vw, 4rem);"></i>
+
+                        </div>
+
+                        <h1 class="fw-bold mb-3"
+                            style="font-size: clamp(2rem, 3vw, 2.8rem);">
+
+                            SympoTrack
+
+                        </h1>
+
+                        <p class="text-muted fs-6 fs-lg-5 mb-0">
+
+                            Plataforma de gestão e lembretes
+                            de eventos acadêmicos
+
+                        </p>
+
+                    </div>
+
+
+                    <!-- LINK CADASTRO -->
+                    {% if not SOCIALACCOUNT_ONLY %}
+
+                        <div class="text-center mb-4">
+
+                            <small class="text-muted fs-6">
+
+                                Não possui uma conta?
+
+                                <a href="{{ signup_url }}"
+                                   class="text-decoration-none fw-semibold">
+
+                                    Criar conta
+
+                                </a>
+
+                            </small>
+
+                        </div>
+
+
+                        <!-- FORMULÁRIO -->
+                        {% url 'account_login' as login_url %}
+
+                        {% element form form=form method="post" action=login_url tags="entrance,login" %}
+
+                            {% slot body %}
+
+                                {% csrf_token %}
+
+                                <div class="mb-4">
+
+                                    {% element fields form=form unlabeled=True %}
+                                    {% endelement %}
+
+                                </div>
+
+                                {{ redirect_field }}
+
+                            {% endslot %}
+
+
+                            <!-- BOTÃO -->
+                            {% slot actions %}
+
+                                <div class="d-grid mt-4">
+
+                                    {% element button type="submit" tags="prominent,login" %}
+
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                                        Entrar
+
+                                    {% endelement %}
+
+                                </div>
+
+                            {% endslot %}
+
+                        {% endelement %}
+
+                    {% endif %}
+
+
+                    <!-- LOGIN ALTERNATIVO -->
+                    {% if LOGIN_BY_CODE_ENABLED or PASSKEY_LOGIN_ENABLED %}
+
+                        <div class="my-5">
+
+                            <div class="d-flex align-items-center">
+
+                                <hr class="flex-grow-1">
+
+                                <span class="px-3 text-muted small">
+                                    ou
+                                </span>
+
+                                <hr class="flex-grow-1">
+
+                            </div>
+
+                        </div>
+
+
+                        {% element button_group vertical=True %}
+
+                            {% if PASSKEY_LOGIN_ENABLED %}
+
+                                <div class="d-grid mb-3">
+
+                                    {% element button type="submit" form="mfa_login" id="passkey_login" tags="outline,primary" %}
+
+                                        <i class="bi bi-key me-2"></i>
+                                        Entrar com Passkey
+
+                                    {% endelement %}
+
+                                </div>
+
+                            {% endif %}
+
+
+                            {% if LOGIN_BY_CODE_ENABLED %}
+
+                                <div class="d-grid">
+
+                                    {% element button href=request_login_code_url tags="outline,primary" %}
+
+                                        <i class="bi bi-envelope-check me-2"></i>
+                                        Receber código de acesso
+
+                                    {% endelement %}
+
+                                </div>
+
+                            {% endif %}
+
+                        {% endelement %}
+
+                    {% endif %}
+
+
+                    <!-- LOGIN SOCIAL -->
+                    {% if SOCIALACCOUNT_ENABLED %}
+
+                        <div class="mt-5">
+
+                            {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock content %}
+
+
+<!-- SCRIPTS -->
+{% block extra_body %}
+
+    {{ block.super }}
+
+    {% if PASSKEY_LOGIN_ENABLED %}
+
+        {% include "mfa/webauthn/snippets/login_script.html" with button_id="passkey_login" %}
+
+    {% endif %}
+
+{% endblock %}
