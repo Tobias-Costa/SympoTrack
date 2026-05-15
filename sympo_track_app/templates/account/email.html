@@ -2,36 +2,27 @@
 
 {% load static allauth i18n %}
 
-
-<!-- TÍTULO -->
 {% block head_title %}
     {% trans "Email Addresses" %}
 {% endblock head_title %}
 
-
-<!-- CONTEÚDO -->
 {% block content %}
 
 <div class="container-fluid">
 
     <div class="row justify-content-center py-4">
 
-        <div class="col-12 col-lg-10 col-xl-8">
+        <div class="col-11 col-md-10 col-lg-8 col-xl-7">
 
-            <!-- CARD PRINCIPAL -->
-            <div class="card global-card border-0 shadow-sm mb-4">
+            <!-- MAIN CARD -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
 
                 <div class="card-body p-4 p-md-5">
 
-                    <!-- CABEÇALHO -->
+                    <!-- HEADER -->
                     <div class="text-center mb-5">
 
-                        <div class="mb-3">
-
-                            <i class="bi bi-envelope text-primary"
-                               style="font-size: clamp(3rem, 5vw, 4rem);"></i>
-
-                        </div>
+                        <i class="bi bi-envelope text-primary display-3 d-block mb-3"></i>
 
                         <h1 class="fw-bold mb-3">
 
@@ -47,8 +38,7 @@
 
                     </div>
 
-
-                    <!-- LISTA DE EMAILS -->
+                    <!-- EMAIL LIST -->
                     {% if emailaddresses %}
 
                         <p class="text-muted mb-4">
@@ -59,133 +49,128 @@
 
                         {% url 'account_email' as email_url %}
 
-                        {% element form form=form action=email_url method="post" tags="email,list" %}
+                        <form method="post"
+                              action="{{ email_url }}">
 
-                            {% slot body %}
+                            {% csrf_token %}
 
-                                {% csrf_token %}
+                            <div class="d-flex flex-column gap-3">
 
-                                <div class="d-flex flex-column gap-3">
+                                {% for radio in emailaddress_radios %}
 
-                                    {% for radio in emailaddress_radios %}
+                                    {% with emailaddress=radio.emailaddress %}
 
-                                        {% with emailaddress=radio.emailaddress %}
+                                        <label for="{{ radio.id }}"
+                                               class="border rounded-4 p-3 d-block">
 
-                                            <div class="border rounded-4 p-3">
+                                            <div class="form-check">
 
-                                                <div class="form-check">
+                                                <input class="form-check-input"
+                                                       type="radio"
+                                                       name="email"
+                                                       value="{{ emailaddress.email }}"
+                                                       id="{{ radio.id }}"
+                                                       {% if radio.checked %}checked{% endif %}>
 
-                                                    <input class="form-check-input"
-                                                           type="radio"
-                                                           name="email"
-                                                           value="{{ emailaddress.email }}"
-                                                           id="{{ radio.id }}"
-                                                           {% if radio.checked %}checked{% endif %}>
+                                                <div class="ms-2 w-100">
 
-                                                    <label class="form-check-label w-100"
-                                                           for="{{ radio.id }}">
+                                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
 
-                                                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                                                        <!-- EMAIL -->
+                                                        <span class="fw-semibold">
 
-                                                            <!-- EMAIL -->
-                                                            <div class="fw-semibold">
+                                                            {{ emailaddress.email }}
 
-                                                                {{ emailaddress.email }}
+                                                        </span>
 
-                                                            </div>
+                                                        <!-- BADGES -->
+                                                        <div class="d-flex flex-wrap gap-2">
 
+                                                            {% if emailaddress.verified %}
 
-                                                            <!-- BADGES -->
-                                                            <div class="d-flex flex-wrap gap-2">
+                                                                <span class="badge bg-success">
 
-                                                                {% if emailaddress.verified %}
+                                                                    Verificado
 
-                                                                    <span class="badge bg-success">
+                                                                </span>
 
-                                                                        Verificado
+                                                            {% else %}
 
-                                                                    </span>
+                                                                <span class="badge bg-warning text-dark">
 
-                                                                {% else %}
+                                                                    Não verificado
 
-                                                                    <span class="badge bg-warning text-dark">
+                                                                </span>
 
-                                                                        Não verificado
+                                                            {% endif %}
 
-                                                                    </span>
+                                                            {% if emailaddress.primary %}
 
-                                                                {% endif %}
+                                                                <span class="badge bg-primary">
 
-                                                                {% if emailaddress.primary %}
+                                                                    Principal
 
-                                                                    <span class="badge bg-primary">
+                                                                </span>
 
-                                                                        Principal
-
-                                                                    </span>
-
-                                                                {% endif %}
-
-                                                            </div>
+                                                            {% endif %}
 
                                                         </div>
 
-                                                    </label>
+                                                    </div>
 
                                                 </div>
 
                                             </div>
 
-                                        {% endwith %}
+                                        </label>
 
-                                    {% endfor %}
+                                    {% endwith %}
 
-                                </div>
+                                {% endfor %}
 
-                            {% endslot %}
+                            </div>
 
+                            <!-- ACTIONS -->
+                            <div class="d-grid d-md-flex gap-3 mt-4">
 
-                            <!-- AÇÕES -->
-                            {% slot actions %}
+                                <button type="submit"
+                                        name="action_primary"
+                                        class="btn btn-primary">
 
-                                <div class="d-grid d-md-flex gap-3 mt-4">
+                                    <i class="bi bi-star me-2"></i>
 
-                                    <!-- PRINCIPAL -->
-                                    {% element button type="submit" name="action_primary" %}
+                                    Tornar Principal
 
-                                        <i class="bi bi-star me-2"></i>
-                                        Tornar Principal
+                                </button>
 
-                                    {% endelement %}
+                                <button type="submit"
+                                        name="action_send"
+                                        class="btn btn-outline-secondary">
 
+                                    <i class="bi bi-envelope-check me-2"></i>
 
-                                    <!-- REENVIAR -->
-                                    {% element button tags="secondary" type="submit" name="action_send" %}
+                                    Reenviar Verificação
 
-                                        <i class="bi bi-envelope-check me-2"></i>
-                                        Reenviar Verificação
+                                </button>
 
-                                    {% endelement %}
+                                <button type="submit"
+                                        name="action_remove"
+                                        class="btn btn-outline-danger">
 
+                                    <i class="bi bi-trash me-2"></i>
 
-                                    <!-- REMOVER -->
-                                    {% element button tags="danger,delete" type="submit" name="action_remove" %}
+                                    Remover
 
-                                        <i class="bi bi-trash me-2"></i>
-                                        Remover
+                                </button>
 
-                                    {% endelement %}
+                            </div>
 
-                                </div>
-
-                            {% endslot %}
-
-                        {% endelement %}
+                        </form>
 
                     {% else %}
 
-                        <!-- SEM EMAIL -->
-                        <div class="alert alert-warning border-0 rounded-4">
+                        <!-- NO EMAIL -->
+                        <div class="alert alert-warning rounded-4 border-0">
 
                             {% include "account/snippets/warn_no_email.html" %}
 
@@ -197,11 +182,10 @@
 
             </div>
 
-
-            <!-- ADICIONAR EMAIL -->
+            <!-- ADD EMAIL -->
             {% if can_add_email %}
 
-                <div class="card global-card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm rounded-4">
 
                     <div class="card-body p-4 p-md-5">
 
@@ -221,41 +205,60 @@
 
                         </div>
 
-
                         {% url 'account_email' as action_url %}
 
-                        {% element form form=form method="post" action=action_url tags="email,add" %}
+                        <form method="post"
+                              action="{{ action_url }}">
 
-                            {% slot body %}
+                            {% csrf_token %}
 
-                                {% csrf_token %}
+                            <!-- EMAIL FIELD -->
+                            <div class="mb-4">
 
-                                <div class="mb-4">
+                                <label for="{{ form.email.id_for_label }}"
+                                       class="form-label fw-semibold">
 
-                                    {% element fields form=form %}
-                                    {% endelement %}
+                                    Novo E-mail
 
-                                </div>
+                                </label>
 
-                            {% endslot %}
+                                <input type="email"
+                                       name="{{ form.email.name }}"
+                                       id="{{ form.email.id_for_label }}"
+                                       value="{{ form.email.value|default:'' }}"
+                                       class="form-control form-control-lg"
+                                       placeholder="Digite um novo e-mail"
+                                       autocomplete="email"
+                                       required>
 
+                                {% if form.email.errors %}
 
-                            {% slot actions %}
+                                    <div class="text-danger small mt-1">
 
-                                <div class="d-grid d-md-inline">
+                                        {{ form.email.errors }}
 
-                                    {% element button name="action_add" type="submit" %}
+                                    </div>
 
-                                        <i class="bi bi-plus-circle me-2"></i>
-                                        Adicionar E-mail
+                                {% endif %}
 
-                                    {% endelement %}
+                            </div>
 
-                                </div>
+                            <!-- SUBMIT -->
+                            <div class="d-grid d-md-inline">
 
-                            {% endslot %}
+                                <button type="submit"
+                                        name="action_add"
+                                        class="btn btn-primary btn-lg">
 
-                        {% endelement %}
+                                    <i class="bi bi-plus-circle me-2"></i>
+
+                                    Adicionar E-mail
+
+                                </button>
+
+                            </div>
+
+                        </form>
 
                     </div>
 
@@ -271,8 +274,6 @@
 
 {% endblock content %}
 
-
-<!-- SCRIPTS -->
 {% block extra_body %}
 
 <script src="{% static 'account/js/account.js' %}"></script>

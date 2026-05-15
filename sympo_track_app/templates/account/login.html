@@ -3,45 +3,34 @@
 {% load i18n %}
 {% load allauth account %}
 
-
-<!-- TÍTULO -->
 {% block head_title %}
     {% trans "Sign In" %}
 {% endblock head_title %}
 
-
-<!-- CONTEÚDO -->
 {% block content %}
 
 <div class="container-fluid">
 
     <div class="row justify-content-center align-items-center min-vh-100 py-4">
 
-        <!-- CARD RESPONSIVO -->
-        <div class="col-11 col-sm-10 col-md-9 col-lg-8 col-xl-7 col-xxl-6">
+        <div class="col-11 col-sm-10 col-md-8 col-lg-7 col-xl-6">
 
-            <div class="card global-card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm rounded-4">
 
-                <div class="card-body p-4 p-md-5 p-xl-5">
+                <div class="card-body p-4 p-md-5">
 
-                    <!-- LOGO -->
+                    <!-- HEADER -->
                     <div class="text-center mb-5">
 
-                        <div class="mb-3">
+                        <i class="bi bi-calendar-event text-primary display-3 d-block mb-3"></i>
 
-                            <i class="bi bi-calendar-event text-primary"
-                               style="font-size: clamp(3rem, 4vw, 4rem);"></i>
-
-                        </div>
-
-                        <h1 class="fw-bold mb-3"
-                            style="font-size: clamp(2rem, 3vw, 2.8rem);">
+                        <h1 class="fw-bold mb-3">
 
                             SympoTrack
 
                         </h1>
 
-                        <p class="text-muted fs-6 fs-lg-5 mb-0">
+                        <p class="text-muted mb-0">
 
                             Plataforma de gestão e lembretes
                             de eventos acadêmicos
@@ -50,18 +39,17 @@
 
                     </div>
 
-
-                    <!-- LINK CADASTRO -->
+                    <!-- SIGNUP -->
                     {% if not SOCIALACCOUNT_ONLY %}
 
                         <div class="text-center mb-4">
 
-                            <small class="text-muted fs-6">
+                            <small class="text-muted">
 
                                 Não possui uma conta?
 
                                 <a href="{{ signup_url }}"
-                                   class="text-decoration-none fw-semibold">
+                                   class="fw-semibold text-decoration-none">
 
                                     Criar conta
 
@@ -71,50 +59,129 @@
 
                         </div>
 
-
-                        <!-- FORMULÁRIO -->
+                        <!-- FORM -->
                         {% url 'account_login' as login_url %}
 
-                        {% element form form=form method="post" action=login_url tags="entrance,login" %}
+                        <form method="post"
+                              action="{{ login_url }}"
+                              class="w-100">
 
-                            {% slot body %}
+                            {% csrf_token %}
 
-                                {% csrf_token %}
+                            <!-- GLOBAL ERRORS -->
+                            {% if form.non_field_errors %}
 
-                                <div class="mb-4">
+                                <div class="alert alert-danger mb-4">
 
-                                    {% element fields form=form unlabeled=True %}
-                                    {% endelement %}
-
-                                </div>
-
-                                {{ redirect_field }}
-
-                            {% endslot %}
-
-
-                            <!-- BOTÃO -->
-                            {% slot actions %}
-
-                                <div class="d-grid mt-4">
-
-                                    {% element button type="submit" tags="prominent,login" %}
-
-                                        <i class="bi bi-box-arrow-in-right me-2"></i>
-                                        Entrar
-
-                                    {% endelement %}
+                                    {{ form.non_field_errors }}
 
                                 </div>
 
-                            {% endslot %}
+                            {% endif %}
 
-                        {% endelement %}
+                            <!-- LOGIN -->
+                            <div class="mb-4">
+
+                                <label for="{{ form.login.id_for_label }}"
+                                       class="form-label fw-semibold">
+
+                                    E-mail
+
+                                </label>
+
+                                <input type="text"
+                                       name="{{ form.login.name }}"
+                                       id="{{ form.login.id_for_label }}"
+                                       value="{{ form.login.value|default:'' }}"
+                                       class="form-control form-control-lg"
+                                       placeholder="Digite seu e-mail"
+                                       autocomplete="username"
+                                       required>
+
+                                {% if form.login.errors %}
+
+                                    <div class="text-danger small mt-1">
+
+                                        {{ form.login.errors }}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                            <!-- PASSWORD -->
+                            <div class="mb-3">
+
+                                <label for="{{ form.password.id_for_label }}"
+                                       class="form-label fw-semibold">
+
+                                    Senha
+
+                                </label>
+
+                                <input type="password"
+                                       name="{{ form.password.name }}"
+                                       id="{{ form.password.id_for_label }}"
+                                       class="form-control form-control-lg"
+                                       placeholder="Digite sua senha"
+                                       autocomplete="current-password"
+                                       required>
+
+                                {% if form.password.errors %}
+
+                                    <div class="text-danger small mt-1">
+
+                                        {{ form.password.errors }}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                            <!-- REMEMBER -->
+                            {% if form.remember %}
+
+                                <div class="form-check mb-4">
+
+                                    <input type="checkbox"
+                                           name="{{ form.remember.name }}"
+                                           id="{{ form.remember.id_for_label }}"
+                                           class="form-check-input">
+
+                                    <label for="{{ form.remember.id_for_label }}"
+                                           class="form-check-label">
+
+                                        Lembrar de mim
+
+                                    </label>
+
+                                </div>
+
+                            {% endif %}
+
+                            {{ redirect_field }}
+
+                            <!-- SUBMIT -->
+                            <div class="d-grid mt-4">
+
+                                <button type="submit"
+                                        class="btn btn-primary btn-lg">
+
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>
+
+                                    Entrar
+
+                                </button>
+
+                            </div>
+
+                        </form>
 
                     {% endif %}
 
-
-                    <!-- LOGIN ALTERNATIVO -->
+                    <!-- ALTERNATIVE LOGIN -->
                     {% if LOGIN_BY_CODE_ENABLED or PASSKEY_LOGIN_ENABLED %}
 
                         <div class="my-5">
@@ -124,7 +191,9 @@
                                 <hr class="flex-grow-1">
 
                                 <span class="px-3 text-muted small">
+
                                     ou
+
                                 </span>
 
                                 <hr class="flex-grow-1">
@@ -133,46 +202,45 @@
 
                         </div>
 
+                        {% if PASSKEY_LOGIN_ENABLED %}
 
-                        {% element button_group vertical=True %}
+                            <div class="d-grid mb-3">
 
-                            {% if PASSKEY_LOGIN_ENABLED %}
+                                <button type="submit"
+                                        form="mfa_login"
+                                        id="passkey_login"
+                                        class="btn btn-outline-primary btn-lg">
 
-                                <div class="d-grid mb-3">
+                                    <i class="bi bi-key me-2"></i>
 
-                                    {% element button type="submit" form="mfa_login" id="passkey_login" tags="outline,primary" %}
+                                    Entrar com Passkey
 
-                                        <i class="bi bi-key me-2"></i>
-                                        Entrar com Passkey
+                                </button>
 
-                                    {% endelement %}
+                            </div>
 
-                                </div>
+                        {% endif %}
 
-                            {% endif %}
+                        {% if LOGIN_BY_CODE_ENABLED %}
 
+                            <div class="d-grid">
 
-                            {% if LOGIN_BY_CODE_ENABLED %}
+                                <a href="{{ request_login_code_url }}"
+                                   class="btn btn-outline-primary btn-lg">
 
-                                <div class="d-grid">
+                                    <i class="bi bi-envelope-check me-2"></i>
 
-                                    {% element button href=request_login_code_url tags="outline,primary" %}
+                                    Receber código de acesso
 
-                                        <i class="bi bi-envelope-check me-2"></i>
-                                        Receber código de acesso
+                                </a>
 
-                                    {% endelement %}
+                            </div>
 
-                                </div>
-
-                            {% endif %}
-
-                        {% endelement %}
+                        {% endif %}
 
                     {% endif %}
 
-
-                    <!-- LOGIN SOCIAL -->
+                    <!-- SOCIAL LOGIN -->
                     {% if SOCIALACCOUNT_ENABLED %}
 
                         <div class="mt-5">
@@ -195,8 +263,6 @@
 
 {% endblock content %}
 
-
-<!-- SCRIPTS -->
 {% block extra_body %}
 
     {{ block.super }}
