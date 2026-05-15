@@ -8,6 +8,10 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 
 # Create your models here.
 
+# -----------------------------------------------------------
+# USUÁRIO
+# -----------------------------------------------------------
+
 class UserManager(BaseUserManager):
     def _create_user(self, username, email, password, is_staff, is_superuser, **extra_fields):
         now = timezone.now()
@@ -73,4 +77,562 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Envia um e-mail para este usuário"""
         send_mail(subject, message, from_email, [self.email])
 
-        
+
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+
+# -----------------------------------------------------------
+# CADASTRO DE EVENTO
+# -----------------------------------------------------------
+
+class Language(models.Model):
+    language = models.CharField(
+        _("Idioma"),
+        max_length=255
+    )
+
+    class Meta:
+        verbose_name = _("Idioma")
+        verbose_name_plural = _("Idiomas")
+
+    def __str__(self):
+        return self.language
+
+
+class Country(models.Model):
+    name = models.CharField(
+        _("Nome"),
+        max_length=255
+    )
+
+    abbr = models.CharField(
+        _("Sigla"),
+        max_length=10
+    )
+
+    class Meta:
+        verbose_name = _("País")
+        verbose_name_plural = _("Países")
+
+    def __str__(self):
+        return self.name
+
+
+class State(models.Model):
+    name = models.CharField(
+        _("Nome"),
+        max_length=255
+    )
+
+    uf = models.CharField(
+        _("UF"),
+        max_length=10
+    )
+
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_("País"),
+        on_delete=models.CASCADE,
+        related_name="states"
+    )
+
+    class Meta:
+        verbose_name = _("Estado")
+        verbose_name_plural = _("Estados")
+
+    def __str__(self):
+        return f"{self.name} - {self.country.abbr}"
+
+
+class City(models.Model):
+    name = models.CharField(
+        _("Nome"),
+        max_length=255
+    )
+
+    state = models.ForeignKey(
+        State,
+        verbose_name=_("Estado"),
+        on_delete=models.CASCADE,
+        related_name="cities"
+    )
+
+    class Meta:
+        verbose_name = _("Cidade")
+        verbose_name_plural = _("Cidades")
+
+    def __str__(self):
+        return f"{self.name} - {self.state.uf}"
+
+
+class EventAddress(models.Model):
+    place_name = models.CharField(
+        _("Nome do local"),
+        max_length=255
+    )
+
+    street = models.CharField(
+        _("Rua"),
+        max_length=255
+    )
+
+    number = models.CharField(
+        _("Número"),
+        max_length=10,
+        null=True,
+        blank=True
+    )
+
+    complement = models.CharField(
+        _("Complemento"),
+        max_length=255,
+        null=True,
+        blank=True
+    )
+
+    neighborhood = models.CharField(
+        _("Bairro"),
+        max_length=255,
+        null=True,
+        blank=True
+    )
+
+    cep = models.CharField(
+        _("CEP"),
+        max_length=20,
+        null=True,
+        blank=True
+    )
+
+    city = models.ForeignKey(
+        City,
+        verbose_name=_("Cidade"),
+        on_delete=models.CASCADE,
+        related_name="event_addresses"
+    )
+
+    created_at = models.DateTimeField(
+        _("Data de criação"),
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = _("Endereço do evento")
+        verbose_name_plural = _("Endereços dos eventos")
+
+    def __str__(self):
+        return f"{self.place_name} - {self.city.name}"
+
+
+class EventCategories(models.Model):
+    name = models.CharField(
+        _("Nome"),
+        max_length=255
+    )
+
+    class Meta:
+        verbose_name = _("Categoria do evento")
+        verbose_name_plural = _("Categorias dos eventos")
+
+    def __str__(self):
+        return self.name
+
+
+class Event(models.Model):
+    title = models.CharField(
+        _("Título"),
+        max_length=255
+    )
+
+    description = models.TextField(
+        _("Descrição")
+    )
+
+    subject = models.CharField(
+        _("Tema"),
+        max_length=255
+    )
+
+    address = models.ForeignKey(
+        EventAddress,
+        verbose_name=_("Endereço"),
+        on_delete=models.CASCADE,
+        related_name="events"
+    )
+
+    language = models.ForeignKey(
+        Language,
+        verbose_name=_("Idioma"),
+        on_delete=models.CASCADE,
+        related_name="events"
+    )
+
+    external_link = models.URLField(
+        _("Link externo")
+    )
+
+    is_public = models.BooleanField(
+        _("Evento público"),
+        default=True
+    )
+
+    creator = models.ForeignKey(
+        'User',
+        verbose_name=_("Criador"),
+        on_delete=models.CASCADE,
+        related_name="created_events"
+    )
+
+    categories = models.ManyToManyField(
+        EventCategories,
+        verbose_name=_("Categorias"),
+        through='EventCategoryRel'
+    )
+
+    created_at = models.DateTimeField(
+        _("Data de criação"),
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        _("Última atualização"),
+        auto_now=True
+    )
+
+    class Meta:
+        verbose_name = _("Evento")
+        verbose_name_plural = _("Eventos")
+
+    def __str__(self):
+        return self.title
+
+
+class EventCategoryRel(models.Model):
+    category = models.ForeignKey(
+        EventCategories,
+        verbose_name=_("Categoria"),
+        on_delete=models.CASCADE
+    )
+
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Evento"),
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = _("Relação de categoria")
+        verbose_name_plural = _("Relações de categorias")
+        unique_together = ('category', 'event')
+
+
+class EventStagesType(models.Model):
+    event_stage_type_name = models.CharField(
+        _("Nome da etapa"),
+        max_length=255
+    )
+
+    class Meta:
+        verbose_name = _("Tipo de etapa")
+        verbose_name_plural = _("Tipos de etapas")
+
+    def __str__(self):
+        return self.event_stage_type_name
+
+
+class EventStage(models.Model):
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Evento"),
+        on_delete=models.CASCADE,
+        related_name="stages"
+    )
+
+    stage_type = models.ForeignKey(
+        EventStagesType,
+        verbose_name=_("Tipo da etapa"),
+        on_delete=models.CASCADE
+    )
+
+    start_date = models.DateTimeField(
+        _("Data inicial")
+    )
+
+    end_date = models.DateTimeField(
+        _("Data final")
+    )
+
+    class Meta:
+        verbose_name = _("Etapa do evento")
+        verbose_name_plural = _("Etapas do evento")
+
+    def __str__(self):
+        return f"{self.event.title} - {self.stage_type.event_stage_type_name}"
+
+
+class EventPricing(models.Model):
+
+    CATEGORY_CHOICES = [
+        ("PROFISSIONAL", _("Profissional")),
+        ("POS", _("Pós-graduação")),
+        ("GRADUACAO", _("Graduação")),
+    ]
+
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Evento"),
+        on_delete=models.CASCADE,
+        related_name="prices"
+    )
+
+    category = models.CharField(
+        _("Categoria"),
+        max_length=100,
+        choices=CATEGORY_CHOICES
+    )
+
+    batch = models.CharField(
+        _("Lote"),
+        max_length=50,
+        default="Lote 1"
+    )
+
+    price = models.DecimalField(
+        _("Preço"),
+        max_digits=10,
+        decimal_places=2
+    )
+
+    class Meta:
+        verbose_name = _("Preço do evento")
+        verbose_name_plural = _("Preços do evento")
+
+    def __str__(self):
+        return f"{self.event.title} - {self.category}"
+
+
+# -----------------------------------------------------------
+# GESTÃO DO EVENTO
+# -----------------------------------------------------------
+
+class EventRole(models.Model):
+    role = models.CharField(
+        _("Função"),
+        max_length=255
+    )
+
+    class Meta:
+        verbose_name = _("Função do evento")
+        verbose_name_plural = _("Funções do evento")
+
+    def __str__(self):
+        return self.role
+
+
+class ManagementGroup(models.Model):
+    name = models.CharField(
+        _("Nome"),
+        max_length=255
+    )
+
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Evento"),
+        on_delete=models.CASCADE,
+        related_name="management_groups"
+    )
+
+    class Meta:
+        verbose_name = _("Grupo de gestão")
+        verbose_name_plural = _("Grupos de gestão")
+
+    def __str__(self):
+        return f"{self.name} - {self.event.title}"
+
+
+class ManagementGroupMember(models.Model):
+    group = models.ForeignKey(
+        ManagementGroup,
+        verbose_name=_("Grupo"),
+        on_delete=models.CASCADE,
+        related_name="members"
+    )
+
+    user = models.ForeignKey(
+        'User',
+        verbose_name=_("Usuário"),
+        on_delete=models.CASCADE
+    )
+
+    role = models.ForeignKey(
+        EventRole,
+        verbose_name=_("Função"),
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = _("Membro do grupo")
+        verbose_name_plural = _("Membros dos grupos")
+        unique_together = ('group', 'user', 'role')
+
+
+# -----------------------------------------------------------
+# INSCRIÇÕES E PARTICIPAÇÃO
+# -----------------------------------------------------------
+
+class EventSubscription(models.Model):
+
+    STATUS_CHOICES = [
+        ("INSCRITO", _("Inscrito")),
+        ("PENDENTE", _("Pendente")),
+        ("CONFIRMADO", _("Confirmado")),
+        ("EXPIRADO", _("Expirado")),
+    ]
+
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Evento"),
+        on_delete=models.CASCADE,
+        related_name="subscriptions"
+    )
+
+    user = models.ForeignKey(
+        'User',
+        verbose_name=_("Usuário"),
+        on_delete=models.CASCADE,
+        related_name="subscriptions"
+    )
+
+    status = models.CharField(
+        _("Status"),
+        max_length=20,
+        choices=STATUS_CHOICES
+    )
+
+    created_at = models.DateTimeField(
+        _("Data de criação"),
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        _("Última atualização"),
+        auto_now=True
+    )
+
+    class Meta:
+        verbose_name = _("Inscrição")
+        verbose_name_plural = _("Inscrições")
+
+    def __str__(self):
+        return f"{self.user.username} - {self.event.title}"
+
+
+class UserStageRequirement(models.Model):
+    event_stage = models.ForeignKey(
+        EventStage,
+        verbose_name=_("Etapa do evento"),
+        on_delete=models.CASCADE,
+        related_name="stage_requirements"
+    )
+
+    subscription = models.ForeignKey(
+        EventSubscription,
+        verbose_name=_("Inscrição"),
+        on_delete=models.CASCADE
+    )
+
+    is_completed = models.BooleanField(
+        _("Concluído"),
+        default=False
+    )
+
+    created_at = models.DateTimeField(
+        _("Data de criação"),
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        _("Última atualização"),
+        auto_now=True
+    )
+
+    class Meta:
+        verbose_name = _("Requisito da etapa")
+        verbose_name_plural = _("Requisitos das etapas")
+
+
+class CancellationReason(models.Model):
+    subscription = models.ForeignKey(
+        EventSubscription,
+        verbose_name=_("Inscrição"),
+        on_delete=models.CASCADE,
+        related_name="cancellation_reasons"
+    )
+
+    reason_text = models.TextField(
+        _("Motivo")
+    )
+
+    created_at = models.DateTimeField(
+        _("Data de criação"),
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = _("Motivo de cancelamento")
+        verbose_name_plural = _("Motivos de cancelamento")
+
+
+# -----------------------------------------------------------
+# NOTIFICAÇÕES
+# -----------------------------------------------------------
+
+class NotificationsSubject(models.Model):
+    message_subject = models.CharField(
+        _("Assunto"),
+        max_length=255
+    )
+
+    class Meta:
+        verbose_name = _("Assunto da notificação")
+        verbose_name_plural = _("Assuntos das notificações")
+
+    def __str__(self):
+        return self.message_subject
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(
+        'User',
+        verbose_name=_("Usuário"),
+        on_delete=models.CASCADE,
+        related_name="notifications"
+    )
+
+    subject = models.ForeignKey(
+        NotificationsSubject,
+        verbose_name=_("Assunto"),
+        on_delete=models.CASCADE
+    )
+
+    title = models.CharField(
+        _("Título"),
+        max_length=255
+    )
+
+    message = models.TextField(
+        _("Mensagem")
+    )
+
+    created_at = models.DateTimeField(
+        _("Data de criação"),
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = _("Notificação")
+        verbose_name_plural = _("Notificações")
+
+    def __str__(self):
+        return self.title
