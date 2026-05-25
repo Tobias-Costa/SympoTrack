@@ -1,0 +1,671 @@
+{% extends 'allauth/layouts/base.html' %}
+
+{% load static %}
+
+
+<!-- TÍTULO -->
+{% block title %}
+    Criar Evento
+{% endblock %}
+
+
+<!-- CONTEÚDO -->
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- CABEÇALHO -->
+    <div class="text-center mb-5">
+
+        <div class="mb-3">
+
+            <i class="bi bi-calendar-plus text-primary"
+               style="font-size: clamp(3rem, 5vw, 4rem);"></i>
+
+        </div>
+
+        <h1 class="fw-bold mb-3">
+
+            Criar Evento
+
+        </h1>
+
+        <p class="text-muted mb-0">
+
+            Cadastre um novo evento acadêmico
+
+        </p>
+
+    </div>
+
+
+    <!-- FORMULÁRIO -->
+    <div class="row justify-content-center">
+
+        <div class="col-12 col-xl-10">
+
+            <div class="card global-card border-0 shadow-sm">
+
+                <div class="card-body p-4 p-lg-5">
+
+                    <form method="POST"
+                          action="{% url 'register_event' %}">
+
+                        {% csrf_token %}
+
+
+                        <!-- INFORMAÇÕES PRINCIPAIS -->
+                        <div class="mb-5">
+
+                            <h4 class="fw-bold mb-4">
+
+                                Informações do Evento
+
+                            </h4>
+
+                            <div class="row g-4">
+
+                                <!-- TÍTULO -->
+                                <div class="col-12">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Título
+
+                                    </label>
+
+                                    <input type="text"
+                                           name="title"
+                                           class="form-control"
+                                           value="{{ title }}"
+                                           placeholder="Digite o título do evento">
+
+                                </div>
+
+
+                                <!-- TEMA -->
+                                <div class="col-md-6">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Tema
+
+                                    </label>
+
+                                    <input type="text"
+                                           name="subject"
+                                           class="form-control"
+                                           value="{{ subject }}"
+                                           placeholder="Tema do evento">
+
+                                </div>
+
+
+                                <!-- IDIOMA -->
+                                <div class="col-md-6">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Idioma
+
+                                    </label>
+
+                                    <select name="language"
+                                            class="form-select">
+
+                                        {{ language_options }}
+
+                                    </select>
+
+                                    <div class="mt-2">
+
+                                        <a href="#"
+                                           class="small text-decoration-none">
+
+                                            Não está achando?
+                                            Crie um idioma agora!
+
+                                        </a>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- LINK -->
+                                <div class="col-12">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Link Externo
+
+                                    </label>
+
+                                    <input type="url"
+                                           name="external_link"
+                                           class="form-control"
+                                           value="{{ external_link }}"
+                                           placeholder="https://">
+
+                                </div>
+
+
+                                <!-- PÚBLICO -->
+                                <div class="col-12">
+
+                                    <div class="form-check">
+
+                                        <input type="checkbox"
+                                               class="form-check-input"
+                                               name="is_public"
+                                               id="is_public"
+                                               {% if is_public %}checked{% endif %}>
+
+                                        <label class="form-check-label"
+                                               for="is_public">
+
+                                            Evento público
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- DESCRIÇÃO -->
+                                <div class="col-12">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Descrição
+
+                                    </label>
+
+                                    <textarea name="description"
+                                              rows="5"
+                                              class="form-control"
+                                              placeholder="Descreva o evento">{{ description }}</textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ENDEREÇO -->
+                        <div class="mb-5">
+
+                            <h4 class="fw-bold mb-4">
+
+                                Endereço
+
+                            </h4>
+
+                            <div class="row g-4">
+
+                                <div class="col-12">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Endereço do Evento
+
+                                    </label>
+
+                                    <select name="address"
+                                            class="form-select">
+
+                                        {{ address_options }}
+
+                                    </select>
+
+                                    <div class="mt-2">
+
+                                        <a href="#"
+                                           class="small text-decoration-none">
+
+                                            Não está achando?
+                                            Crie um endereço agora!
+
+                                        </a>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- CATEGORIAS -->
+                        <div class="mb-5">
+
+                            <h4 class="fw-bold mb-4">
+
+                                Categorias
+
+                            </h4>
+
+                            <div class="row g-4">
+
+                                <div class="col-12">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Categorias do Evento
+
+                                    </label>
+
+                                    <select name="categories"
+                                            multiple
+                                            class="form-select"
+                                            style="min-height: 180px;">
+
+                                        {{ category_options }}
+
+                                    </select>
+
+                                    <div class="mt-2">
+
+                                        <a href="#"
+                                           class="small text-decoration-none">
+
+                                            Não está achando?
+                                            Crie uma categoria agora!
+
+                                        </a>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ETAPAS -->
+                        <div class="mb-5">
+
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                                <h4 class="fw-bold mb-0">
+
+                                    Etapas do Evento
+
+                                </h4>
+
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm" id="add-stage-btn">
+
+                                    <i class="bi bi-plus-circle me-2"></i>
+                                    Adicionar Etapa
+
+                                </button>
+
+                            </div>
+
+
+                            <div id="stages-container">
+
+                                <!-- ITEM ETAPA -->
+                                <div class="border rounded-4 p-4 mb-4 stage-item">
+    
+                                    <div class="row g-4">
+    
+                                        <!-- TIPO -->
+                                        <div class="col-md-4">
+    
+                                            <label class="form-label fw-semibold">
+    
+                                                Tipo da Etapa
+    
+                                            </label>
+    
+                                            <select name="stage_type[]"
+                                                    class="form-select">
+    
+                                                {{ event_stage_type_options }}
+    
+                                            </select>
+    
+                                            <div class="mt-2">
+    
+                                                <a href="#"
+                                                   class="small text-decoration-none">
+    
+                                                    Não está achando?
+                                                    Crie um tipo agora!
+    
+                                                </a>
+    
+                                            </div>
+    
+                                        </div>
+    
+    
+                                        <!-- INÍCIO -->
+                                        <div class="col-md-4">
+    
+                                            <label class="form-label fw-semibold">
+    
+                                                Data Inicial
+    
+                                            </label>
+    
+                                            <input type="datetime-local"
+                                                   name="stage_start_date[]"
+                                                   class="form-control">
+    
+                                        </div>
+    
+    
+                                        <!-- FIM -->
+                                        <div class="col-md-4">
+    
+                                            
+    
+                                            <label class="form-label fw-semibold">
+    
+                                                Data Final
+    
+                                            </label>
+    
+                                            <input type="datetime-local"
+                                                   name="stage_end_date[]"
+                                                   class="form-control">
+    
+                                            <!-- REMOVER -->
+                                            <div class="text-end mt-2">
+            
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-sm remove-stage-btn">
+            
+                                                    <i class="bi bi-trash me-2"></i>
+                                                    Remover Etapa
+            
+                                                </button>
+            
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+
+                        </div>
+
+
+                        <!-- PREÇOS -->
+                        <div class="mb-5">
+
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                                <h4 class="fw-bold mb-0">
+
+                                    Preços
+
+                                </h4>
+
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm" id="add-price-btn">
+
+                                    <i class="bi bi-plus-circle me-2"></i>
+                                    Adicionar Preço
+
+                                </button>
+
+                            </div>
+
+
+                            <div id="prices-container">
+
+                                <!-- ITEM PREÇO -->
+                                <div class="border rounded-4 p-4 mb-4 price-item">
+    
+                                    <div class="row g-4">
+    
+                                        <!-- CATEGORIA -->
+                                        <div class="col-md-4">
+    
+                                            <label class="form-label fw-semibold">
+    
+                                                Categoria
+    
+                                            </label>
+    
+                                            <select name="price_category[]"
+                                                    class="form-select">
+    
+                                                <option value="PROFISSIONAL">
+                                                    Profissional
+                                                </option>
+    
+                                                <option value="POS">
+                                                    Pós-graduação
+                                                </option>
+    
+                                                <option value="GRADUACAO">
+                                                    Graduação
+                                                </option>
+    
+                                            </select>
+    
+                                        </div>
+    
+    
+                                        <!-- LOTE -->
+                                        <div class="col-md-4">
+    
+                                            <label class="form-label fw-semibold">
+    
+                                                Lote
+    
+                                            </label>
+    
+                                            <input type="text"
+                                                   name="batch[]"
+                                                   class="form-control"
+                                                   placeholder="Lote 1">
+    
+                                        </div>
+    
+    
+                                        <!-- PREÇO -->
+                                        <div class="col-md-4">
+    
+                                            <label class="form-label fw-semibold">
+    
+                                                Preço
+    
+                                            </label>
+    
+                                            <input type="number"
+                                                   step="0.01"
+                                                   name="price[]"
+                                                   class="form-control"
+                                                   placeholder="0.00">
+    
+                                            <!-- REMOVER -->
+                                            <div class="text-end mt-2">
+            
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-sm remove-pricebatch-btn">
+            
+                                                    <i class="bi bi-trash me-2"></i>
+                                                    Remover Precificação
+            
+                                                </button>
+            
+                                            </div>
+    
+                                        </div>
+    
+                                    </div>
+    
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- BOTÕES -->
+                        <div class="d-grid d-md-flex justify-content-md-end gap-3">
+
+                            <a href="{% url 'home' %}"
+                               class="btn btn-outline-secondary px-4">
+
+                                Cancelar
+
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-primary px-4">
+
+                                <i class="bi bi-check-circle me-2"></i>
+                                Salvar Evento
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    
+    // -----------------------------------------------------------------
+    // ADICIONAR E REMOVER CAMPOS DE ETAPAS DO EVENTO
+    // -----------------------------------------------------------------
+
+    const addStageBtn = document.getElementById("add-stage-btn");
+
+    const stagesContainer = document.getElementById("stages-container");
+
+
+    // ADICIONAR ETAPA
+    addStageBtn.addEventListener("click", function () {
+
+        const stageItem = document.querySelector(".stage-item");
+
+        const newStage = stageItem.cloneNode(true);
+
+
+        // LIMPAR INPUTS
+        newStage.querySelectorAll("input").forEach(input => {
+
+            input.value = "";
+
+        });
+
+
+        // RESET SELECTS
+        newStage.querySelectorAll("select").forEach(select => {
+
+            select.selectedIndex = 0;
+
+        });
+
+
+        stagesContainer.appendChild(newStage);
+
+    });
+
+
+    // REMOVER ETAPA
+    stagesContainer.addEventListener("click", function (e) {
+
+        if (e.target.closest(".remove-stage-btn")) {
+
+            const allStages = document.querySelectorAll(".stage-item");
+
+            if (allStages.length > 1) {
+
+                e.target.closest(".stage-item").remove();
+
+            }
+
+        }
+
+    });
+
+    // -----------------------------------------------------------------
+    // ADICIONAR E REMOVER CAMPOS DE PREÇOS E LOTES DO EVENTO
+    // -----------------------------------------------------------------
+
+
+    const addPriceBtn = document.getElementById("add-price-btn");
+
+    const pricesContainer = document.getElementById("prices-container");
+
+
+    // ADICIONAR ETAPA
+    addPriceBtn.addEventListener("click", function () {
+
+        const priceItem = document.querySelector(".price-item");
+
+        const newPrice = priceItem.cloneNode(true);
+
+
+        // LIMPAR INPUTS
+        newPrice.querySelectorAll("input").forEach(input => {
+
+            input.value = "";
+
+        });
+
+
+        // RESET SELECTS
+        newPrice.querySelectorAll("select").forEach(select => {
+
+            select.selectedIndex = 0;
+
+        });
+
+
+        pricesContainer.appendChild(newPrice);
+
+    });
+
+
+    // REMOVER ETAPA
+    pricesContainer.addEventListener("click", function (e) {
+
+        if (e.target.closest(".remove-pricebatch-btn")) {
+
+            const allPrices = document.querySelectorAll(".price-item");
+
+            if (allPrices.length > 1) {
+
+                e.target.closest(".price-item").remove();
+
+            }
+
+        }
+
+    });
+
+
+    });
+
+
+</script>
+
+{% endblock %}

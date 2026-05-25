@@ -25,12 +25,9 @@ Home | SympoTrack
                             SympoTrack
                         </h1>
 
-                        <!-- <p class="lead mb-4">
-                            Plataforma para gerenciamento e lembretes de eventos acadêmicos.
-                            Organize simpósios, congressos e conferências em um só lugar.
-                        </p> -->
-
-                        {% if user.is_authenticated %}
+                        <p class="lead mb-4">
+                            Gerenciador de Eventos
+                        </p>
 
                         <div class="d-flex flex-wrap gap-3">
 
@@ -42,7 +39,7 @@ Home | SympoTrack
 
                             </a>
 
-                            <a href="#"
+                            <a href="{% url 'register_event' %}"
                                class="btn btn-outline-light btn-lg px-4">
 
                                 <i class="bi bi-calendar-plus me-2"></i>
@@ -51,18 +48,6 @@ Home | SympoTrack
                             </a>
 
                         </div>
-
-                        {% else %}
-
-                        <a href="{% url 'login' %}"
-                           class="btn btn-light btn-lg px-4">
-
-                            <i class="bi bi-box-arrow-in-right me-2"></i>
-                            Fazer Login
-
-                        </a>
-
-                        {% endif %}
 
                     </div>
 
