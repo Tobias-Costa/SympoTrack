@@ -218,13 +218,17 @@
                                     <select name="address"
                                             class="form-select">
 
-                                        {{ address_options }}
+                                            <option value="">---</option>
+
+                                        {% for addr in address_options %}
+                                            <option value="{{add}}">{{addr}}</option>
+                                        {% endfor %}
 
                                     </select>
 
                                     <div class="mt-2">
 
-                                        <a href="#"
+                                        <a href="{% url 'register_address' %}"
                                            class="small text-decoration-none">
 
                                             Não está achando?
