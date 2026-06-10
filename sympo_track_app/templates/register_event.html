@@ -8,6 +8,10 @@
     Criar Evento
 {% endblock %}
 
+<!-- TomSelect CSS import -->
+{% block links %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+{% endblock %}
 
 <!-- CONTEÚDO -->
 {% block content %}
@@ -266,18 +270,26 @@
 
                                     </label>
 
-                                    <select name="categories"
+                                    <select id="categories"
+                                            name="categories"
                                             multiple
                                             class="form-select"
                                             style="min-height: 180px;">
 
-                                        {{ category_options }}
+                                        <!-- TO-DO: Adicionar model de área e subáreas e criar chaves estrangeiras em EventCategories -->
+                                        <optgroup label="Área">
+                                            <optgroup label="Subárea"></optgroup>
+                                                {% for category in category_options %}
+                                                    <option value="{{ category }}">{{ category }}</option>
+                                                {% endfor %}
+                                            </optgroup>
+                                        </optgroup>
 
                                     </select>
 
                                     <div class="mt-2">
 
-                                        <a href="#"
+                                        <a href="{% url 'register_category' %}"
                                            class="small text-decoration-none">
 
                                             Não está achando?
@@ -680,7 +692,6 @@
 
 
     });
-
 
 </script>
 

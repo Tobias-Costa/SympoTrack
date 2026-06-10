@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import DatabaseError
-from .models import Language, State, City, EventAddress
+from .models import Language, State, City, EventAddress, EventCategories
 
 # Create your views here.
 
@@ -16,8 +16,9 @@ def register_event(request):
      # Retorna todas as linguagens cadastradas no DB
     languages = Language.objects.all().order_by("language")
     addresses = EventAddress.objects.all().order_by("place_name")
+    categories = EventCategories.objects.all().order_by("name")
 
-    return render(request, "register_event.html", {"languages":languages, "addresses_options":addresses})
+    return render(request, "register_event.html", {"languages":languages, "addresses_options":addresses, "category_options":categories, })
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 
@@ -69,7 +70,7 @@ def register_address(request):
 
 @login_required
 def register_city(request):
-    if request.method == "POST":
+    if request.method == "POST":  
         try:
             # Salvando cidade do formulário no model City
             state_id = get_object_or_404(State, id=request.POST.get('state'))
@@ -86,4 +87,22 @@ def register_city(request):
 
     states = State.objects.all().order_by('name')
     return render(request, "register_city.html", {'states':states})
+
+@login_required
+def register_category(request):
+    if request.method == "POST":
+        try:
+            # Salvando categoria no model EventCategories
+            category = EventCategories(name=request.POST.get('name'))
+            category.save()
+            # Atualiza buffer de messages
+            messages.success(request, "Categoria adicionada.")
+        except DatabaseError as e:
+            # Captura o erro do banco de dados e avisa o usuário sem derrubar o sistema
+            messages.error(request, f"Erro ao salvar a categoria")
+        except Exception as e:
+            # Captura qualquer outro erro inesperado
+            messages.error(request, f"Ocorreu um erro inesperado")
+
+    return render(request, "register_category.html")
     
