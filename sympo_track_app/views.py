@@ -15,9 +15,9 @@ def home(request):
 def register_event(request):
      # Retorna todas as linguagens cadastradas no DB
     languages = Language.objects.all().order_by("language")
-    address = EventAddress.objects.all().order_by("place_name")
+    addresses = EventAddress.objects.all().order_by("place_name")
 
-    return render(request, "register_event.html", {"languages":languages, "address_options":address})
+    return render(request, "register_event.html", {"languages":languages, "addresses_options":addresses})
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 

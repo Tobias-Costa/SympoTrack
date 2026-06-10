@@ -142,7 +142,7 @@ class State(models.Model):
         verbose_name_plural = _("Estados")
 
     def __str__(self):
-        return f"{self.name} - {self.country.abbr}"
+        return f"{self.name} ({self.uf}) - {self.country.abbr}"
 
 
 class City(models.Model):
@@ -163,7 +163,7 @@ class City(models.Model):
         verbose_name_plural = _("Cidades")
 
     def __str__(self):
-        return f"{self.name} - {self.state.uf}"
+        return f"{self.name} - {self.state.uf}, {self.state.country.abbr}"
 
 
 class EventAddress(models.Model):
@@ -222,7 +222,7 @@ class EventAddress(models.Model):
         verbose_name_plural = _("Endereços dos eventos")
 
     def __str__(self):
-        return f"{self.place_name} - {self.city.name}"
+        return f"{self.place_name} - {self.city.name}, {self.city.state.name}, {self.city.state.country}"
 
 
 class EventCategories(models.Model):
