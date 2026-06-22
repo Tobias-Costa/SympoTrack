@@ -10,7 +10,13 @@
 
 <!-- TomSelect CSS import -->
 {% block links %}
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <link rel="stylesheet" href="https://unpkg.com/@geoapify/geocoder-autocomplete@2.0.1/styles/styles.css" />
+
 {% endblock %}
 
 <!-- CONTEÚDO -->
@@ -206,47 +212,65 @@
                         <div class="mb-5">
 
                             <h4 class="fw-bold mb-4">
-
                                 Endereço
-
                             </h4>
 
                             <div class="row g-4">
 
+                                <!-- NOME DO LOCAL -->
                                 <div class="col-12">
 
                                     <label class="form-label fw-semibold">
-
-                                        Endereço do Evento
-
+                                        Nome do Local
                                     </label>
 
-                                    <select name="address"
-                                            class="form-select">
+                                    <input type="text"
+                                        name="place_name"
+                                        class="form-control"
+                                        placeholder="Ex.: Auditório Principal, Centro de Eventos..."
+                                        required>
 
-                                            <option value="">---</option>
+                                </div>
 
-                                        {% for addr in addresses_options %}
-                                            <option value="{{add}}">{{addr}}</option>
-                                        {% endfor %}
+                                <!-- BUSCA -->
+                                <div class="col-12">
 
-                                    </select>
+                                    <label class="form-label fw-semibold">
+                                        Localização do Evento
+                                    </label>
 
-                                    <div class="mt-2">
+                                    <div id="autocomplete"></div>
 
-                                        <a href="{% url 'register_address' %}"
-                                           class="small text-decoration-none">
+                                    <div class="form-text">
+                                        Digite o endereço e selecione uma das sugestões.
+                                    </div>
 
-                                            Não está achando?
-                                            Crie um endereço agora!
+                                </div>
 
-                                        </a>
+                                <!-- MAPA -->
+                                <div class="col-12">
 
+                                    <div id="mapa"
+                                        class="border rounded-4 overflow-hidden shadow-sm"
+                                        style="height: 400px;">
                                     </div>
 
                                 </div>
 
                             </div>
+
+                            <!-- CAMPOS OCULTOS -->
+                            <input type="hidden" id="id_street" name="street">
+                            <input type="hidden" id="id_number" name="number">
+                            <input type="hidden" id="id_neighborhood" name="neighborhood">
+                            <input type="hidden" id="id_cep" name="cep">
+
+                            <input type="hidden" id="id_city" name="city_name">
+                            <input type="hidden" id="id_state" name="state_name">
+                            <input type="hidden" id="id_uf" name="state_uf">
+
+                            <input type="hidden" id="id_country" name="country_name">
+                            <input type="hidden" id="id_country_abbr" name="country_abbr">
 
                         </div>
 
@@ -576,6 +600,10 @@
 
 </div>
 
+<!-- SCRIPTS DO GEOAPIFY -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@geoapify/geocoder-autocomplete@2.0.1/dist/index.min.js"></script>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
     
@@ -691,8 +719,95 @@
     });
 
 
+    // -----------------------------------------------------------------
+    // AUTOCOMPLETE DO ENDEREÇO
+    // -----------------------------------------------------------------
+    const apiKey = "{{ geoapify_key }}";
+    console.log(apiKey);
+
+    // MAPA
+    const mapa = L.map("mapa").setView(
+        [-3.7319, -38.5267],
+        13
+    );
+
+    L.tileLayer(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19
+        }
+    ).addTo(mapa);
+
+    // MARCADOR
+    const marcador = L.marker(
+        [-3.7319, -38.5267]
+    ).addTo(mapa);
+
+    // AUTOCOMPLETE
+    const autocomplete =
+        new Geoapify.GeocoderAutocomplete(
+            document.getElementById("autocomplete"),
+            apiKey,
+            {
+                lang: "pt",
+                countryCodes: ["br"],
+                placeholder: "Pesquise o endereço do evento"
+            }
+        );
+
+    autocomplete.on(
+        "select",
+        function(location) {
+
+            const props =
+                location.properties;
+
+            // CENTRALIZA MAPA
+
+            mapa.setView(
+                [props.lat, props.lon],
+                17
+            );
+
+            marcador.setLatLng(
+                [props.lat, props.lon]
+            );
+
+            // PREENCHE CAMPOS
+
+            document.getElementById("id_street").value =
+                props.street || "";
+
+            document.getElementById("id_number").value =
+                props.housenumber || "";
+
+            document.getElementById("id_neighborhood").value =
+                props.suburb || "";
+
+            document.getElementById("id_cep").value =
+                props.postcode || "";
+
+            document.getElementById("id_city").value =
+                props.city || "";
+
+            document.getElementById("id_state").value =
+                props.state || "";
+
+            document.getElementById("id_uf").value =
+                props.state_code || "";
+
+            document.getElementById("id_country").value =
+                props.country || "";
+
+            document.getElementById("id_country_abbr").value =
+                props.country_code || "";
+        }
+    );
     });
 
 </script>
+
+
+
 
 {% endblock %}

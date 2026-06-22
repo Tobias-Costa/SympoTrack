@@ -43,6 +43,9 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 # E-mail deve ser único no banco de dados
 ACCOUNT_UNIQUE_EMAIL = True
 
+# GOOGLE MAPS API KEY
+GEOAPIFY_API_KEY = os.getenv("GEOAPIFY_API_KEY")
+
 # Application definition
 
 INSTALLED_APPS = [
