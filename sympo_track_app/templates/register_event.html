@@ -22,6 +22,41 @@
 <!-- CONTEÚDO -->
 {% block content %}
 
+
+<style>
+    .geoapify-autocomplete-input {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--bs-body-color);
+        background-color: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: var(--bs-border-radius);
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .geoapify-autocomplete-input:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+
+    .geoapify-autocomplete-items {
+        border: 1px solid var(--bs-border-color);
+        border-radius: var(--bs-border-radius);
+        box-shadow: var(--bs-box-shadow);
+        background-color: var(--bs-body-bg);
+        z-index: 1050;
+    }
+
+    .geoapify-autocomplete-item:hover {
+        background-color: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
+    }
+</style>
+
 <div class="container py-5">
 
     <!-- CABEÇALHO -->
@@ -217,21 +252,6 @@
 
                             <div class="row g-4">
 
-                                <!-- NOME DO LOCAL -->
-                                <div class="col-12">
-
-                                    <label class="form-label fw-semibold">
-                                        Nome do Local
-                                    </label>
-
-                                    <input type="text"
-                                        name="place_name"
-                                        class="form-control"
-                                        placeholder="Ex.: Auditório Principal, Centro de Eventos..."
-                                        required>
-
-                                </div>
-
                                 <!-- BUSCA -->
                                 <div class="col-12">
 
@@ -260,6 +280,7 @@
                             </div>
 
                             <!-- CAMPOS OCULTOS -->
+                            <input type="hidden" id="id_place_name" name="place_name">
                             <input type="hidden" id="id_street" name="street">
                             <input type="hidden" id="id_number" name="number">
                             <input type="hidden" id="id_neighborhood" name="neighborhood">
@@ -600,211 +621,103 @@
 
 </div>
 
-<!-- SCRIPTS DO GEOAPIFY -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/@geoapify/geocoder-autocomplete@2.0.1/dist/index.min.js"></script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-    
-    // -----------------------------------------------------------------
-    // ADICIONAR E REMOVER CAMPOS DE ETAPAS DO EVENTO
-    // -----------------------------------------------------------------
+<script type="module">
+    import { GeocoderAutocomplete } from "https://cdn.jsdelivr.net/npm/@geoapify/geocoder-autocomplete@2.0.1/+esm";
 
-    const addStageBtn = document.getElementById("add-stage-btn");
-
-    const stagesContainer = document.getElementById("stages-container");
-
-
-    // ADICIONAR ETAPA
-    addStageBtn.addEventListener("click", function () {
-
-        const stageItem = document.querySelector(".stage-item");
-
-        const newStage = stageItem.cloneNode(true);
-
-
-        // LIMPAR INPUTS
-        newStage.querySelectorAll("input").forEach(input => {
-
-            input.value = "";
-
-        });
-
-
-        // RESET SELECTS
-        newStage.querySelectorAll("select").forEach(select => {
-
-            select.selectedIndex = 0;
-
-        });
-
-
-        stagesContainer.appendChild(newStage);
-
-    });
-
-
-    // REMOVER ETAPA
-    stagesContainer.addEventListener("click", function (e) {
-
-        if (e.target.closest(".remove-stage-btn")) {
-
-            const allStages = document.querySelectorAll(".stage-item");
-
-            if (allStages.length > 1) {
-
-                e.target.closest(".stage-item").remove();
-
-            }
-
-        }
-
-    });
-
-    // -----------------------------------------------------------------
-    // ADICIONAR E REMOVER CAMPOS DE PREÇOS E LOTES DO EVENTO
-    // -----------------------------------------------------------------
-
-
-    const addPriceBtn = document.getElementById("add-price-btn");
-
-    const pricesContainer = document.getElementById("prices-container");
-
-
-    // ADICIONAR ETAPA
-    addPriceBtn.addEventListener("click", function () {
-
-        const priceItem = document.querySelector(".price-item");
-
-        const newPrice = priceItem.cloneNode(true);
-
-
-        // LIMPAR INPUTS
-        newPrice.querySelectorAll("input").forEach(input => {
-
-            input.value = "";
-
-        });
-
-
-        // RESET SELECTS
-        newPrice.querySelectorAll("select").forEach(select => {
-
-            select.selectedIndex = 0;
-
-        });
-
-
-        pricesContainer.appendChild(newPrice);
-
-    });
-
-
-    // REMOVER ETAPA
-    pricesContainer.addEventListener("click", function (e) {
-
-        if (e.target.closest(".remove-pricebatch-btn")) {
-
-            const allPrices = document.querySelectorAll(".price-item");
-
-            if (allPrices.length > 1) {
-
-                e.target.closest(".price-item").remove();
-
-            }
-
-        }
-
-    });
-
-
-    // -----------------------------------------------------------------
-    // AUTOCOMPLETE DO ENDEREÇO
-    // -----------------------------------------------------------------
     const apiKey = "{{ geoapify_key }}";
-    console.log(apiKey);
 
-    // MAPA
-    const mapa = L.map("mapa").setView(
-        [-3.7319, -38.5267],
-        13
-    );
+    if (!apiKey || apiKey.includes("{")) {
+        console.error("Chave Geoapify ausente.");
+    } else {
 
-    L.tileLayer(
-        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-            maxZoom: 19
-        }
-    ).addTo(mapa);
+        // MAPA
+        const mapa = L.map("mapa").setView([-3.7319, -38.5267], 13);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "© OpenStreetMap"
+        }).addTo(mapa);
+        const marcador = L.marker([-3.7319, -38.5267]).addTo(mapa);
+        setTimeout(() => mapa.invalidateSize(), 200);
 
-    // MARCADOR
-    const marcador = L.marker(
-        [-3.7319, -38.5267]
-    ).addTo(mapa);
-
-    // AUTOCOMPLETE
-    const autocomplete =
-        new Geoapify.GeocoderAutocomplete(
+        // AUTOCOMPLETE
+        const autocomplete = new GeocoderAutocomplete(
             document.getElementById("autocomplete"),
             apiKey,
-            {
-                lang: "pt",
-                countryCodes: ["br"],
-                placeholder: "Pesquise o endereço do evento"
-            }
+            { lang: "pt", countryCodes: ["br"], placeholder: "Pesquise o endereço do evento", skipIcons: false, addDetails: true, }
         );
 
-    autocomplete.on(
-        "select",
-        function(location) {
+        // REFORMATA AS SUGESTÕES ANTES DE EXIBIR
+        autocomplete.on("suggestions", function(suggestions) {
+            suggestions.forEach(function(suggestion) {
+                if (!suggestion.properties) return;
+                const p = suggestion.properties;
 
-            const props =
-                location.properties;
+                // Monta texto legível: "Rua X, 123 - Bairro, Cidade - UF"
+                const parts = [
+                    p.name || "",
+                    p.street && p.housenumber ? `${p.street}, ${p.housenumber}` : p.street || "",
+                    p.suburb || "",
+                    p.city ? `${p.city}${p.state_code ? " - " + p.state_code : ""}` : "",
+                ].filter(Boolean);
 
-            // CENTRALIZA MAPA
+                suggestion.properties.formatted = parts.join(" · ");
+            });
+        });
 
-            mapa.setView(
-                [props.lat, props.lon],
-                17
-            );
+        autocomplete.on("select", function(location) {
+            if (!location?.properties) return;
+            const props = location.properties;
 
-            marcador.setLatLng(
-                [props.lat, props.lon]
-            );
+            mapa.setView([props.lat, props.lon], 17);
+            marcador.setLatLng([props.lat, props.lon]);
+            mapa.invalidateSize();
+            
+            document.getElementById("id_place_name").value = props.name || props.address_line1 || "";
+            document.getElementById("id_street").value       = props.street || "";
+            document.getElementById("id_number").value       = props.housenumber || "";
+            document.getElementById("id_neighborhood").value = props.suburb || "";
+            document.getElementById("id_cep").value          = props.postcode || "";
+            document.getElementById("id_city").value         = props.city || "";
+            document.getElementById("id_state").value        = props.state || "";
+            document.getElementById("id_uf").value           = props.state_code || "";
+            document.getElementById("id_country").value      = props.country || "";
+            document.getElementById("id_country_abbr").value = props.country_code || "";
+        });
+    }
 
-            // PREENCHE CAMPOS
-
-            document.getElementById("id_street").value =
-                props.street || "";
-
-            document.getElementById("id_number").value =
-                props.housenumber || "";
-
-            document.getElementById("id_neighborhood").value =
-                props.suburb || "";
-
-            document.getElementById("id_cep").value =
-                props.postcode || "";
-
-            document.getElementById("id_city").value =
-                props.city || "";
-
-            document.getElementById("id_state").value =
-                props.state || "";
-
-            document.getElementById("id_uf").value =
-                props.state_code || "";
-
-            document.getElementById("id_country").value =
-                props.country || "";
-
-            document.getElementById("id_country_abbr").value =
-                props.country_code || "";
-        }
-    );
+    // ETAPAS
+    document.getElementById("add-stage-btn").addEventListener("click", function () {
+        const stageItem = document.querySelector(".stage-item");
+        const newStage = stageItem.cloneNode(true);
+        newStage.querySelectorAll("input").forEach(i => i.value = "");
+        newStage.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+        document.getElementById("stages-container").appendChild(newStage);
     });
 
+    document.getElementById("stages-container").addEventListener("click", function (e) {
+        if (e.target.closest(".remove-stage-btn")) {
+            const all = document.querySelectorAll(".stage-item");
+            if (all.length > 1) e.target.closest(".stage-item").remove();
+        }
+    });
+
+    // PREÇOS
+    document.getElementById("add-price-btn").addEventListener("click", function () {
+        const priceItem = document.querySelector(".price-item");
+        const newPrice = priceItem.cloneNode(true);
+        newPrice.querySelectorAll("input").forEach(i => i.value = "");
+        newPrice.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+        document.getElementById("prices-container").appendChild(newPrice);
+    });
+
+    document.getElementById("prices-container").addEventListener("click", function (e) {
+        if (e.target.closest(".remove-pricebatch-btn")) {
+            const all = document.querySelectorAll(".price-item");
+            if (all.length > 1) e.target.closest(".price-item").remove();
+        }
+    });
 </script>
 
 
