@@ -645,7 +645,8 @@
         const autocomplete = new GeocoderAutocomplete(
             document.getElementById("autocomplete"),
             apiKey,
-            { lang: "pt", countryCodes: ["br"], placeholder: "Pesquise o endereço do evento", skipIcons: false, addDetails: true, }
+            { lang: "pt", placeholder: "Pesquise o endereço do evento", skipIcons: false, addDetails: true, } // countryCodes: ["br"]
+
         );
 
         // REFORMATA AS SUGESTÕES ANTES DE EXIBIR
