@@ -41,7 +41,7 @@ class UserManager(BaseUserManager):
 
 # Recriando tabela User
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(_('username'), max_length=15, unique=True, help_text=_('Required. 15 characters or fewer. Letters, numbers and @/./+/-/_ characters'), validators=[ validators.RegexValidator(re.compile('^[\w.@+-]+$'), _('Enter a valid username.'), _('invalid'))])
+    username = models.CharField(_('username'), max_length=15, unique=True, help_text=_('Required. 15 characters or fewer. Letters, numbers and @/./+/-/_ characters'), validators=[ validators.RegexValidator(re.compile(r'^[\w.@+-]+$'), _('Enter a valid username.'), _('invalid'))])
     first_name = models.CharField(_('first name'), max_length=30)
     last_name = models.CharField(_('last name'), max_length=30)
     email = models.EmailField(_('email address'), max_length=255, unique=True)
