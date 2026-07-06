@@ -4,7 +4,11 @@ from django.core import validators
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    PermissionsMixin,
+    BaseUserManager,
+)
 
 # Create your models here.
 
@@ -12,67 +16,100 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 # USUÁRIO
 # -----------------------------------------------------------
 
+
 class UserManager(BaseUserManager):
-    def _create_user(self, username, email, password, is_staff, is_superuser, **extra_fields):
+    def _create_user(
+        self, username, email, password, is_staff, is_superuser, **extra_fields
+    ):
         now = timezone.now()
         if not username:
-            raise ValueError(_('The given username must be set'))
-        
+            raise ValueError(_("The given username must be set"))
+
         email = self.normalize_email(email)
-        user = self.model(username=username, email=email,
-            is_staff=is_staff, is_active=True,
-            is_superuser=is_superuser, last_login=now,
-            date_joined=now, **extra_fields
+        user = self.model(
+            username=username,
+            email=email,
+            is_staff=is_staff,
+            is_active=True,
+            is_superuser=is_superuser,
+            last_login=now,
+            date_joined=now,
+            **extra_fields,
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
-    
+
     def create_user(self, username, email=None, password=None, **extra_fields):
-        return self._create_user(username, email, password, False, False,
-        **extra_fields)
-    
+        return self._create_user(
+            username, email, password, False, False, **extra_fields
+        )
+
     def create_superuser(self, username, email, password, **extra_fields):
-        user=self._create_user(username, email, password, True, True,
-        **extra_fields)
-        user.is_active=True
+        user = self._create_user(username, email, password, True, True, **extra_fields)
+        user.is_active = True
         user.save(using=self._db)
         return user
 
+
 # Recriando tabela User
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(_('username'), max_length=15, unique=True, help_text=_('Required. 15 characters or fewer. Letters, numbers and @/./+/-/_ characters'), validators=[ validators.RegexValidator(re.compile(r'^[\w.@+-]+$'), _('Enter a valid username.'), _('invalid'))])
-    first_name = models.CharField(_('first name'), max_length=30)
-    last_name = models.CharField(_('last name'), max_length=30)
-    email = models.EmailField(_('email address'), max_length=255, unique=True)
-    is_staff = models.BooleanField(_('staff status'), default=False, help_text=_('Designates whether the user can log into this admin site.'))
-    is_active = models.BooleanField(_('active'), default=True, help_text=_('Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    username = models.CharField(
+        _("username"),
+        max_length=15,
+        unique=True,
+        help_text=_(
+            "Required. 15 characters or fewer. Letters, numbers and @/./+/-/_ characters"
+        ),
+        validators=[
+            validators.RegexValidator(
+                re.compile(r"^[\w.@+-]+$"), _("Enter a valid username."), _("invalid")
+            )
+        ],
+    )
+    first_name = models.CharField(_("first name"), max_length=30)
+    last_name = models.CharField(_("last name"), max_length=30)
+    email = models.EmailField(_("email address"), max_length=255, unique=True)
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_("Designates whether the user can log into this admin site."),
+    )
+    is_active = models.BooleanField(
+        _("active"),
+        default=True,
+        help_text=_(
+            "Designates whether this user should be treated as active. Unselect this instead of deleting accounts."
+        ),
+    )
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     # Novos campos de User
-    cpf = models.CharField('CPF',max_length=11, unique=True, null=True, blank=True)
-    telephone1 = models.CharField(_('Telefone 1'), max_length=15, null=True, blank=True)
-    telephone2 = models.CharField(_('Telefone 2'), max_length=15, null=True, blank=True)
-    profile_completed = models.BooleanField(_('Indicador de perfil completo'), default=False)
+    cpf = models.CharField("CPF", max_length=11, unique=True, null=True, blank=True)
+    telephone1 = models.CharField(_("Telefone 1"), max_length=15, null=True, blank=True)
+    telephone2 = models.CharField(_("Telefone 2"), max_length=15, null=True, blank=True)
+    profile_completed = models.BooleanField(
+        _("Indicador de perfil completo"), default=False
+    )
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     objects = UserManager()
 
     class Meta:
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
 
     def get_full_name(self):
         """Retorna o nome completo do usuário"""
-        full_name = (f"{self.first_name} {self.last_name}")    
+        full_name = f"{self.first_name} {self.last_name}"
         return full_name.strip()
-    
+
     def get_short_name(self):
         """Retorna o primeiro nome do usuário"""
         return self.first_name
-    
+
     def email_user(self, subject, message, from_email=None):
         """Envia um e-mail para este usuário"""
         send_mail(subject, message, from_email, [self.email])
@@ -81,16 +118,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-
 # -----------------------------------------------------------
 # CADASTRO DE EVENTO
 # -----------------------------------------------------------
 
+
 class Language(models.Model):
-    language = models.CharField(
-        _("Idioma"),
-        max_length=255
-    )
+    language = models.CharField(_("Idioma"), max_length=255)
 
     class Meta:
         verbose_name = _("Idioma")
@@ -101,15 +135,9 @@ class Language(models.Model):
 
 
 class Country(models.Model):
-    name = models.CharField(
-        _("Nome"),
-        max_length=255
-    )
+    name = models.CharField(_("Nome"), max_length=255)
 
-    abbr = models.CharField(
-        _("Sigla"),
-        max_length=10
-    )
+    abbr = models.CharField(_("Sigla"), max_length=10)
 
     class Meta:
         verbose_name = _("País")
@@ -120,21 +148,12 @@ class Country(models.Model):
 
 
 class State(models.Model):
-    name = models.CharField(
-        _("Nome"),
-        max_length=255
-    )
+    name = models.CharField(_("Nome"), max_length=255)
 
-    uf = models.CharField(
-        _("UF"),
-        max_length=10
-    )
+    uf = models.CharField(_("UF"), max_length=10)
 
     country = models.ForeignKey(
-        Country,
-        verbose_name=_("País"),
-        on_delete=models.CASCADE,
-        related_name="states"
+        Country, verbose_name=_("País"), on_delete=models.CASCADE, related_name="states"
     )
 
     class Meta:
@@ -146,16 +165,10 @@ class State(models.Model):
 
 
 class City(models.Model):
-    name = models.CharField(
-        _("Nome"),
-        max_length=255
-    )
+    name = models.CharField(_("Nome"), max_length=255)
 
     state = models.ForeignKey(
-        State,
-        verbose_name=_("Estado"),
-        on_delete=models.CASCADE,
-        related_name="cities"
+        State, verbose_name=_("Estado"), on_delete=models.CASCADE, related_name="cities"
     )
 
     class Meta:
@@ -167,55 +180,28 @@ class City(models.Model):
 
 
 class EventAddress(models.Model):
-    place_name = models.CharField(
-        _("Nome do local"),
-        max_length=255
-    )
+    place_name = models.CharField(_("Nome do local"), max_length=255)
 
-    street = models.CharField(
-        _("Rua"),
-        max_length=255
-    )
+    street = models.CharField(_("Rua"), max_length=255)
 
-    number = models.CharField(
-        _("Número"),
-        max_length=10,
-        null=True,
-        blank=True
-    )
+    number = models.CharField(_("Número"), max_length=10, null=True, blank=True)
 
     complement = models.CharField(
-        _("Complemento"),
-        max_length=255,
-        null=True,
-        blank=True
+        _("Complemento"), max_length=255, null=True, blank=True
     )
 
-    neighborhood = models.CharField(
-        _("Bairro"),
-        max_length=255,
-        null=True,
-        blank=True
-    )
+    neighborhood = models.CharField(_("Bairro"), max_length=255, null=True, blank=True)
 
-    cep = models.CharField(
-        _("CEP"),
-        max_length=20,
-        null=True,
-        blank=True
-    )
+    cep = models.CharField(_("CEP"), max_length=20, null=True, blank=True)
 
     city = models.ForeignKey(
         City,
         verbose_name=_("Cidade"),
         on_delete=models.CASCADE,
-        related_name="event_addresses"
+        related_name="event_addresses",
     )
 
-    created_at = models.DateTimeField(
-        _("Data de criação"),
-        auto_now_add=True
-    )
+    created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
 
     class Meta:
         verbose_name = _("Endereço do evento")
@@ -225,10 +211,26 @@ class EventAddress(models.Model):
         return f"{self.place_name} - {self.city.name}, {self.city.state.name}, {self.city.state.country}"
 
 
+class EventCategoriesArea(models.Model):
+
+    class College(models.TextChoices):
+        EXATAS = "EXATAS", "COLÉGIO DE CIÊNCIAS EXATAS, TECNOLÓGICAS E MULTIDISCIPLINAR"
+        HUMANIDADES = "HUMANAS", "COLÉGIO DE HUMANIDADES"
+        VIDA = "VIDA", "COLÉGIO DE CIÊNCIAS DA VIDA"
+
+    name = models.CharField(_("Nome"), max_length=255)
+    college = models.CharField(_("Colégio"), max_length=8, choices=College.choices)
+
+
 class EventCategories(models.Model):
-    name = models.CharField(
-        _("Nome"),
-        max_length=255
+    name = models.CharField(_("Nome"), max_length=255)
+    area = models.ForeignKey(
+        EventCategoriesArea,
+        verbose_name=_("Área"),
+        on_delete=models.CASCADE,
+        related_name="categories",
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -240,65 +242,44 @@ class EventCategories(models.Model):
 
 
 class Event(models.Model):
-    title = models.CharField(
-        _("Título"),
-        max_length=255
-    )
+    title = models.CharField(_("Título"), max_length=255)
 
-    description = models.TextField(
-        _("Descrição")
-    )
+    description = models.TextField(_("Descrição"))
 
-    subject = models.CharField(
-        _("Tema"),
-        max_length=255
-    )
+    subject = models.CharField(_("Tema"), max_length=255)
 
     address = models.ForeignKey(
         EventAddress,
         verbose_name=_("Endereço"),
         on_delete=models.CASCADE,
-        related_name="events"
+        related_name="events",
     )
 
     language = models.ForeignKey(
         Language,
         verbose_name=_("Idioma"),
         on_delete=models.CASCADE,
-        related_name="events"
+        related_name="events",
     )
 
-    external_link = models.URLField(
-        _("Link externo")
-    )
+    external_link = models.URLField(_("Link externo"))
 
-    is_public = models.BooleanField(
-        _("Evento público"),
-        default=True
-    )
+    is_public = models.BooleanField(_("Evento público"), default=True)
 
     creator = models.ForeignKey(
-        'User',
+        "User",
         verbose_name=_("Criador"),
         on_delete=models.CASCADE,
-        related_name="created_events"
+        related_name="created_events",
     )
 
     categories = models.ManyToManyField(
-        EventCategories,
-        verbose_name=_("Categorias"),
-        through='EventCategoryRel'
+        EventCategories, verbose_name=_("Categorias"), through="EventCategoryRel"
     )
 
-    created_at = models.DateTimeField(
-        _("Data de criação"),
-        auto_now_add=True
-    )
+    created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
 
-    updated_at = models.DateTimeField(
-        _("Última atualização"),
-        auto_now=True
-    )
+    updated_at = models.DateTimeField(_("Última atualização"), auto_now=True)
 
     class Meta:
         verbose_name = _("Evento")
@@ -310,28 +291,19 @@ class Event(models.Model):
 
 class EventCategoryRel(models.Model):
     category = models.ForeignKey(
-        EventCategories,
-        verbose_name=_("Categoria"),
-        on_delete=models.CASCADE
+        EventCategories, verbose_name=_("Categoria"), on_delete=models.CASCADE
     )
 
-    event = models.ForeignKey(
-        Event,
-        verbose_name=_("Evento"),
-        on_delete=models.CASCADE
-    )
+    event = models.ForeignKey(Event, verbose_name=_("Evento"), on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _("Relação de categoria")
         verbose_name_plural = _("Relações de categorias")
-        unique_together = ('category', 'event')
+        unique_together = ("category", "event")
 
 
 class EventStagesType(models.Model):
-    event_stage_type_name = models.CharField(
-        _("Nome da etapa"),
-        max_length=255
-    )
+    event_stage_type_name = models.CharField(_("Nome da etapa"), max_length=255)
 
     class Meta:
         verbose_name = _("Tipo de etapa")
@@ -343,25 +315,16 @@ class EventStagesType(models.Model):
 
 class EventStage(models.Model):
     event = models.ForeignKey(
-        Event,
-        verbose_name=_("Evento"),
-        on_delete=models.CASCADE,
-        related_name="stages"
+        Event, verbose_name=_("Evento"), on_delete=models.CASCADE, related_name="stages"
     )
 
     stage_type = models.ForeignKey(
-        EventStagesType,
-        verbose_name=_("Tipo da etapa"),
-        on_delete=models.CASCADE
+        EventStagesType, verbose_name=_("Tipo da etapa"), on_delete=models.CASCADE
     )
 
-    start_date = models.DateTimeField(
-        _("Data inicial")
-    )
+    start_date = models.DateTimeField(_("Data inicial"))
 
-    end_date = models.DateTimeField(
-        _("Data final")
-    )
+    end_date = models.DateTimeField(_("Data final"))
 
     class Meta:
         verbose_name = _("Etapa do evento")
@@ -380,29 +343,16 @@ class EventPricing(models.Model):
     ]
 
     event = models.ForeignKey(
-        Event,
-        verbose_name=_("Evento"),
-        on_delete=models.CASCADE,
-        related_name="prices"
+        Event, verbose_name=_("Evento"), on_delete=models.CASCADE, related_name="prices"
     )
 
     category = models.CharField(
-        _("Categoria"),
-        max_length=100,
-        choices=CATEGORY_CHOICES
+        _("Categoria"), max_length=100, choices=CATEGORY_CHOICES
     )
 
-    batch = models.CharField(
-        _("Lote"),
-        max_length=50,
-        default="Lote 1"
-    )
+    batch = models.CharField(_("Lote"), max_length=50, default="Lote 1")
 
-    price = models.DecimalField(
-        _("Preço"),
-        max_digits=10,
-        decimal_places=2
-    )
+    price = models.DecimalField(_("Preço"), max_digits=10, decimal_places=2)
 
     class Meta:
         verbose_name = _("Preço do evento")
@@ -416,11 +366,9 @@ class EventPricing(models.Model):
 # GESTÃO DO EVENTO
 # -----------------------------------------------------------
 
+
 class EventRole(models.Model):
-    role = models.CharField(
-        _("Função"),
-        max_length=255
-    )
+    role = models.CharField(_("Função"), max_length=255)
 
     class Meta:
         verbose_name = _("Função do evento")
@@ -431,16 +379,13 @@ class EventRole(models.Model):
 
 
 class ManagementGroup(models.Model):
-    name = models.CharField(
-        _("Nome"),
-        max_length=255
-    )
+    name = models.CharField(_("Nome"), max_length=255)
 
     event = models.ForeignKey(
         Event,
         verbose_name=_("Evento"),
         on_delete=models.CASCADE,
-        related_name="management_groups"
+        related_name="management_groups",
     )
 
     class Meta:
@@ -456,30 +401,27 @@ class ManagementGroupMember(models.Model):
         ManagementGroup,
         verbose_name=_("Grupo"),
         on_delete=models.CASCADE,
-        related_name="members"
+        related_name="members",
     )
 
     user = models.ForeignKey(
-        'User',
-        verbose_name=_("Usuário"),
-        on_delete=models.CASCADE
+        "User", verbose_name=_("Usuário"), on_delete=models.CASCADE
     )
 
     role = models.ForeignKey(
-        EventRole,
-        verbose_name=_("Função"),
-        on_delete=models.CASCADE
+        EventRole, verbose_name=_("Função"), on_delete=models.CASCADE
     )
 
     class Meta:
         verbose_name = _("Membro do grupo")
         verbose_name_plural = _("Membros dos grupos")
-        unique_together = ('group', 'user', 'role')
+        unique_together = ("group", "user", "role")
 
 
 # -----------------------------------------------------------
 # INSCRIÇÕES E PARTICIPAÇÃO
 # -----------------------------------------------------------
+
 
 class EventSubscription(models.Model):
 
@@ -494,31 +436,21 @@ class EventSubscription(models.Model):
         Event,
         verbose_name=_("Evento"),
         on_delete=models.CASCADE,
-        related_name="subscriptions"
+        related_name="subscriptions",
     )
 
     user = models.ForeignKey(
-        'User',
+        "User",
         verbose_name=_("Usuário"),
         on_delete=models.CASCADE,
-        related_name="subscriptions"
+        related_name="subscriptions",
     )
 
-    status = models.CharField(
-        _("Status"),
-        max_length=20,
-        choices=STATUS_CHOICES
-    )
+    status = models.CharField(_("Status"), max_length=20, choices=STATUS_CHOICES)
 
-    created_at = models.DateTimeField(
-        _("Data de criação"),
-        auto_now_add=True
-    )
+    created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
 
-    updated_at = models.DateTimeField(
-        _("Última atualização"),
-        auto_now=True
-    )
+    updated_at = models.DateTimeField(_("Última atualização"), auto_now=True)
 
     class Meta:
         verbose_name = _("Inscrição")
@@ -533,29 +465,18 @@ class UserStageRequirement(models.Model):
         EventStage,
         verbose_name=_("Etapa do evento"),
         on_delete=models.CASCADE,
-        related_name="stage_requirements"
+        related_name="stage_requirements",
     )
 
     subscription = models.ForeignKey(
-        EventSubscription,
-        verbose_name=_("Inscrição"),
-        on_delete=models.CASCADE
+        EventSubscription, verbose_name=_("Inscrição"), on_delete=models.CASCADE
     )
 
-    is_completed = models.BooleanField(
-        _("Concluído"),
-        default=False
-    )
+    is_completed = models.BooleanField(_("Concluído"), default=False)
 
-    created_at = models.DateTimeField(
-        _("Data de criação"),
-        auto_now_add=True
-    )
+    created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
 
-    updated_at = models.DateTimeField(
-        _("Última atualização"),
-        auto_now=True
-    )
+    updated_at = models.DateTimeField(_("Última atualização"), auto_now=True)
 
     class Meta:
         verbose_name = _("Requisito da etapa")
@@ -567,17 +488,12 @@ class CancellationReason(models.Model):
         EventSubscription,
         verbose_name=_("Inscrição"),
         on_delete=models.CASCADE,
-        related_name="cancellation_reasons"
+        related_name="cancellation_reasons",
     )
 
-    reason_text = models.TextField(
-        _("Motivo")
-    )
+    reason_text = models.TextField(_("Motivo"))
 
-    created_at = models.DateTimeField(
-        _("Data de criação"),
-        auto_now_add=True
-    )
+    created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
 
     class Meta:
         verbose_name = _("Motivo de cancelamento")
@@ -588,11 +504,9 @@ class CancellationReason(models.Model):
 # NOTIFICAÇÕES
 # -----------------------------------------------------------
 
+
 class NotificationsSubject(models.Model):
-    message_subject = models.CharField(
-        _("Assunto"),
-        max_length=255
-    )
+    message_subject = models.CharField(_("Assunto"), max_length=255)
 
     class Meta:
         verbose_name = _("Assunto da notificação")
@@ -604,31 +518,21 @@ class NotificationsSubject(models.Model):
 
 class Notification(models.Model):
     user = models.ForeignKey(
-        'User',
+        "User",
         verbose_name=_("Usuário"),
         on_delete=models.CASCADE,
-        related_name="notifications"
+        related_name="notifications",
     )
 
     subject = models.ForeignKey(
-        NotificationsSubject,
-        verbose_name=_("Assunto"),
-        on_delete=models.CASCADE
+        NotificationsSubject, verbose_name=_("Assunto"), on_delete=models.CASCADE
     )
 
-    title = models.CharField(
-        _("Título"),
-        max_length=255
-    )
+    title = models.CharField(_("Título"), max_length=255)
 
-    message = models.TextField(
-        _("Mensagem")
-    )
+    message = models.TextField(_("Mensagem"))
 
-    created_at = models.DateTimeField(
-        _("Data de criação"),
-        auto_now_add=True
-    )
+    created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
 
     class Meta:
         verbose_name = _("Notificação")

@@ -1,727 +1,811 @@
-{% extends 'allauth/layouts/base.html' %}
-
-{% load static %}
-
+{% extends 'allauth/layouts/base.html' %} {% load static %}
 
 <!-- TÍTULO -->
-{% block title %}
-    Criar Evento
-{% endblock %}
+{% block title %} Criar Evento {% endblock %}
 
 <!-- TomSelect CSS import -->
 {% block links %}
 
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<link
+  href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css"
+  rel="stylesheet"
+/>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 
-    <link rel="stylesheet" href="https://unpkg.com/@geoapify/geocoder-autocomplete@2.0.1/styles/styles.css" />
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/@geoapify/geocoder-autocomplete@2.0.1/styles/styles.css"
+/>
 
 {% endblock %}
 
 <!-- CONTEÚDO -->
 {% block content %}
 
-
 <style>
-    .geoapify-autocomplete-input {
-        display: block;
-        width: 100%;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: var(--bs-body-color);
-        background-color: var(--bs-body-bg);
-        border: 1px solid var(--bs-border-color);
-        border-radius: var(--bs-border-radius);
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
+  .geoapify-autocomplete-input {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    transition:
+      border-color 0.15s ease-in-out,
+      box-shadow 0.15s ease-in-out;
+  }
 
-    .geoapify-autocomplete-input:focus {
-        border-color: #86b7fe;
-        outline: 0;
-        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-    }
+  .geoapify-autocomplete-input:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+  }
 
-    .geoapify-autocomplete-items {
-        border: 1px solid var(--bs-border-color);
-        border-radius: var(--bs-border-radius);
-        box-shadow: var(--bs-box-shadow);
-        background-color: var(--bs-body-bg);
-        z-index: 1050;
-    }
+  .geoapify-autocomplete-items {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    box-shadow: var(--bs-box-shadow);
+    background-color: var(--bs-body-bg);
+    z-index: 1050;
+  }
 
-    .geoapify-autocomplete-item:hover {
-        background-color: var(--bs-primary-bg-subtle);
-        color: var(--bs-primary);
-    }
+  .geoapify-autocomplete-item:hover {
+    background-color: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary);
+  }
+
+  .area-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.45rem 0.75rem;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+    background: var(--bs-tertiary-bg);
+    cursor: pointer;
+    border-bottom: 0.5px solid var(--bs-border-color);
+  }
+  .area-header:hover {
+    background: var(--bs-secondary-bg);
+  }
+  .area-header .area-arrow {
+    margin-left: auto;
+    font-size: 11px;
+    transition: transform 0.2s;
+  }
+  .area-header.open .area-arrow {
+    transform: rotate(90deg);
+  }
+
+  .cat-list {
+    display: none;
+    padding: 0.25rem 0;
+  }
+  .cat-list.open {
+    display: block;
+  }
+
+  .cat-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.4rem 1.25rem;
+    font-size: 14px;
+    color: var(--bs-body-color);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .cat-item:hover {
+    background: var(--bs-primary-bg-subtle);
+  }
+  .cat-item input[type="checkbox"] {
+    cursor: pointer;
+  }
+
+  .cat-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary);
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: var(--bs-border-radius);
+  }
+  .cat-tag button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--bs-primary);
+    font-size: 15px;
+    line-height: 1;
+    padding: 0;
+  }
 </style>
 
 <div class="container py-5">
-
-    <!-- CABEÇALHO -->
-    <div class="text-center mb-5">
-
-        <div class="mb-3">
-
-            <i class="bi bi-calendar-plus text-primary"
-               style="font-size: clamp(3rem, 5vw, 4rem);"></i>
-
-        </div>
-
-        <h1 class="fw-bold mb-3">
-
-            Criar Evento
-
-        </h1>
-
-        <p class="text-muted mb-0">
-
-            Cadastre um novo evento acadêmico
-
-        </p>
-
+  <!-- CABEÇALHO -->
+  <div class="text-center mb-5">
+    <div class="mb-3">
+      <i
+        class="bi bi-calendar-plus text-primary"
+        style="font-size: clamp(3rem, 5vw, 4rem)"
+      ></i>
     </div>
 
-
-    <!-- FORMULÁRIO -->
-    <div class="row justify-content-center">
-
-        <div class="col-12 col-xl-10">
-
-            <div class="card global-card border-0 shadow-sm">
-
-                <div class="card-body p-4 p-lg-5">
-
-                    <form method="POST"
-                          action="{% url 'register_event' %}">
-
-                        {% csrf_token %}
-
-
-                        <!-- INFORMAÇÕES PRINCIPAIS -->
-                        <div class="mb-5">
-
-                            <h4 class="fw-bold mb-4">
-
-                                Informações do Evento
-
-                            </h4>
-
-                            <div class="row g-4">
-
-                                <!-- TÍTULO -->
-                                <div class="col-12">
-
-                                    <label class="form-label fw-semibold">
-
-                                        Título
-
-                                    </label>
-
-                                    <input type="text"
-                                           name="title"
-                                           class="form-control"
-                                           value="{{ title }}"
-                                           placeholder="Digite o título do evento">
-
-                                </div>
-
-
-                                <!-- TEMA -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label fw-semibold">
-
-                                        Tema
-
-                                    </label>
-
-                                    <input type="text"
-                                           name="subject"
-                                           class="form-control"
-                                           value="{{ subject }}"
-                                           placeholder="Tema do evento">
-
-                                </div>
-
-
-                                <!-- IDIOMA -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label fw-semibold">
-
-                                        Idioma
-
-                                    </label>
-
-                                    <select name="language"
-                                            class="form-select">
-                                        
-                                        <option value="">---</option>
-
-                                        {% for lng_option in languages %}
-                                            <option value="{{lng_option}}">{{ lng_option }}</option>
-                                        {% endfor %}
-
-                                    </select>
-
-                                    <div class="mt-2">
-
-                                        <a href="{% url 'register_language' %}"
-                                           class="small text-decoration-none">
-
-                                            Não está achando?
-                                            Crie um idioma agora!
-
-                                        </a>
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- LINK -->
-                                <div class="col-12">
-
-                                    <label class="form-label fw-semibold">
-
-                                        Link Externo
-
-                                    </label>
-
-                                    <input type="url"
-                                           name="external_link"
-                                           class="form-control"
-                                           value="{{ external_link }}"
-                                           placeholder="https://">
-
-                                </div>
-
-
-                                <!-- PÚBLICO -->
-                                <div class="col-12">
-
-                                    <div class="form-check">
-
-                                        <input type="checkbox"
-                                               class="form-check-input"
-                                               name="is_public"
-                                               id="is_public"
-                                               {% if is_public %}checked{% endif %}>
-
-                                        <label class="form-check-label"
-                                               for="is_public">
-
-                                            Evento público
-
-                                        </label>
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- DESCRIÇÃO -->
-                                <div class="col-12">
-
-                                    <label class="form-label fw-semibold">
-
-                                        Descrição
-
-                                    </label>
-
-                                    <textarea name="description"
-                                              rows="5"
-                                              class="form-control"
-                                              placeholder="Descreva o evento">{{ description }}</textarea>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- ENDEREÇO -->
-                        <div class="mb-5">
-
-                            <h4 class="fw-bold mb-4">
-                                Endereço
-                            </h4>
-
-                            <div class="row g-4">
-
-                                <!-- BUSCA -->
-                                <div class="col-12">
-
-                                    <label class="form-label fw-semibold">
-                                        Localização do Evento
-                                    </label>
-
-                                    <div id="autocomplete"></div>
-
-                                    <div class="form-text">
-                                        Digite o endereço e selecione uma das sugestões.
-                                    </div>
-
-                                </div>
-
-                                <!-- MAPA -->
-                                <div class="col-12">
-
-                                    <div id="mapa"
-                                        class="border rounded-4 overflow-hidden shadow-sm"
-                                        style="height: 400px;">
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <!-- CAMPOS OCULTOS -->
-                            <input type="hidden" id="id_place_name" name="place_name">
-                            <input type="hidden" id="id_street" name="street">
-                            <input type="hidden" id="id_number" name="number">
-                            <input type="hidden" id="id_neighborhood" name="neighborhood">
-                            <input type="hidden" id="id_cep" name="cep">
-
-                            <input type="hidden" id="id_city" name="city_name">
-                            <input type="hidden" id="id_state" name="state_name">
-                            <input type="hidden" id="id_uf" name="state_uf">
-
-                            <input type="hidden" id="id_country" name="country_name">
-                            <input type="hidden" id="id_country_abbr" name="country_abbr">
-
-                        </div>
-
-
-                        <!-- CATEGORIAS -->
-                        <div class="mb-5">
-
-                            <h4 class="fw-bold mb-4">
-
-                                Categorias
-
-                            </h4>
-
-                            <div class="row g-4">
-
-                                <div class="col-12">
-
-                                    <label class="form-label fw-semibold">
-
-                                        Categorias do Evento
-
-                                    </label>
-
-                                    <select id="categories"
-                                            name="categories"
-                                            multiple
-                                            class="form-select"
-                                            style="min-height: 180px;">
-
-                                        <!-- TO-DO: Adicionar model de área e subáreas e criar chaves estrangeiras em EventCategories -->
-                                        <optgroup label="Área">
-                                            <optgroup label="Subárea"></optgroup>
-                                                {% for category in category_options %}
-                                                    <option value="{{ category }}">{{ category }}</option>
-                                                {% endfor %}
-                                            </optgroup>
-                                        </optgroup>
-
-                                    </select>
-
-                                    <div class="mt-2">
-
-                                        <a href="{% url 'register_category' %}"
-                                           class="small text-decoration-none">
-
-                                            Não está achando?
-                                            Crie uma categoria agora!
-
-                                        </a>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- ETAPAS -->
-                        <div class="mb-5">
-
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-
-                                <h4 class="fw-bold mb-0">
-
-                                    Etapas do Evento
-
-                                </h4>
-
-                                <button type="button"
-                                        class="btn btn-outline-primary btn-sm" id="add-stage-btn">
-
-                                    <i class="bi bi-plus-circle me-2"></i>
-                                    Adicionar Etapa
-
-                                </button>
-
-                            </div>
-
-
-                            <div id="stages-container">
-
-                                <!-- ITEM ETAPA -->
-                                <div class="border rounded-4 p-4 mb-4 stage-item">
-    
-                                    <div class="row g-4">
-    
-                                        <!-- TIPO -->
-                                        <div class="col-md-4">
-    
-                                            <label class="form-label fw-semibold">
-    
-                                                Tipo da Etapa
-    
-                                            </label>
-    
-                                            <select name="stage_type[]"
-                                                    class="form-select">
-    
-                                                {{ event_stage_type_options }}
-    
-                                            </select>
-    
-                                            <div class="mt-2">
-    
-                                                <a href="#"
-                                                   class="small text-decoration-none">
-    
-                                                    Não está achando?
-                                                    Crie um tipo agora!
-    
-                                                </a>
-    
-                                            </div>
-    
-                                        </div>
-    
-    
-                                        <!-- INÍCIO -->
-                                        <div class="col-md-4">
-    
-                                            <label class="form-label fw-semibold">
-    
-                                                Data Inicial
-    
-                                            </label>
-    
-                                            <input type="datetime-local"
-                                                   name="stage_start_date[]"
-                                                   class="form-control">
-    
-                                        </div>
-    
-    
-                                        <!-- FIM -->
-                                        <div class="col-md-4">
-    
-                                            
-    
-                                            <label class="form-label fw-semibold">
-    
-                                                Data Final
-    
-                                            </label>
-    
-                                            <input type="datetime-local"
-                                                   name="stage_end_date[]"
-                                                   class="form-control">
-    
-                                            <!-- REMOVER -->
-                                            <div class="text-end mt-2">
-            
-                                                <button type="button"
-                                                        class="btn btn-outline-danger btn-sm remove-stage-btn">
-            
-                                                    <i class="bi bi-trash me-2"></i>
-                                                    Remover Etapa
-            
-                                                </button>
-            
-                                            </div>
-                                        </div>
-                                        
-                                    </div>
-                                </div>
-
-                            </div>
-
-
-
-                        </div>
-
-
-                        <!-- PREÇOS -->
-                        <div class="mb-5">
-
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-
-                                <h4 class="fw-bold mb-0">
-
-                                    Preços
-
-                                </h4>
-
-                                <button type="button"
-                                        class="btn btn-outline-primary btn-sm" id="add-price-btn">
-
-                                    <i class="bi bi-plus-circle me-2"></i>
-                                    Adicionar Preço
-
-                                </button>
-
-                            </div>
-
-
-                            <div id="prices-container">
-
-                                <!-- ITEM PREÇO -->
-                                <div class="border rounded-4 p-4 mb-4 price-item">
-    
-                                    <div class="row g-4">
-    
-                                        <!-- CATEGORIA -->
-                                        <div class="col-md-4">
-    
-                                            <label class="form-label fw-semibold">
-    
-                                                Categoria
-    
-                                            </label>
-    
-                                            <select name="price_category[]"
-                                                    class="form-select">
-    
-                                                <option value="PROFISSIONAL">
-                                                    Profissional
-                                                </option>
-    
-                                                <option value="POS">
-                                                    Pós-graduação
-                                                </option>
-    
-                                                <option value="GRADUACAO">
-                                                    Graduação
-                                                </option>
-    
-                                            </select>
-    
-                                        </div>
-    
-    
-                                        <!-- LOTE -->
-                                        <div class="col-md-4">
-    
-                                            <label class="form-label fw-semibold">
-    
-                                                Lote
-    
-                                            </label>
-    
-                                            <input type="text"
-                                                   name="batch[]"
-                                                   class="form-control"
-                                                   placeholder="Lote 1">
-    
-                                        </div>
-    
-    
-                                        <!-- PREÇO -->
-                                        <div class="col-md-4">
-    
-                                            <label class="form-label fw-semibold">
-    
-                                                Preço
-    
-                                            </label>
-    
-                                            <input type="number"
-                                                   step="0.01"
-                                                   name="price[]"
-                                                   class="form-control"
-                                                   placeholder="0.00">
-    
-                                            <!-- REMOVER -->
-                                            <div class="text-end mt-2">
-            
-                                                <button type="button"
-                                                        class="btn btn-outline-danger btn-sm remove-pricebatch-btn">
-            
-                                                    <i class="bi bi-trash me-2"></i>
-                                                    Remover Precificação
-            
-                                                </button>
-            
-                                            </div>
-    
-                                        </div>
-    
-                                    </div>
-    
-                                </div>
-
-                            </div>
-
-
-                        </div>
-
-
-                        <!-- BOTÕES -->
-                        <div class="d-grid d-md-flex justify-content-md-end gap-3">
-
-                            <a href="{% url 'home' %}"
-                               class="btn btn-outline-secondary px-4">
-
-                                Cancelar
-
-                            </a>
-
-                            <button type="submit"
-                                    class="btn btn-outline-primary px-4">
-
-                                <i class="bi bi-check-circle me-2"></i>
-                                Salvar Evento e Adicionar Outro
-
-                            </button>
-
-                            <button type="submit"
-                                    class="btn btn-primary px-4">
-
-                                <i class="bi bi-check-circle me-2"></i>
-                                Salvar Evento
-
-                            </button>
-
-                        </div>
-
-                    </form>
-
+    <h1 class="fw-bold mb-3">Criar Evento</h1>
+
+    <p class="text-muted mb-0">Cadastre um novo evento acadêmico</p>
+  </div>
+
+  <!-- FORMULÁRIO -->
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <div class="card global-card border-0 shadow-sm">
+        <div class="card-body p-4 p-lg-5">
+          <form method="POST" action="{% url 'register_event' %}">
+            {% csrf_token %}
+
+            <!-- INFORMAÇÕES PRINCIPAIS -->
+            <div class="mb-5">
+              <h4 class="fw-bold mb-4">Informações do Evento</h4>
+
+              <div class="row g-4">
+                <!-- TÍTULO -->
+                <div class="col-12">
+                  <label class="form-label fw-semibold"> Título </label>
+
+                  <input
+                    type="text"
+                    name="title"
+                    class="form-control"
+                    value="{{ title }}"
+                    placeholder="Digite o título do evento"
+                  />
                 </div>
 
+                <!-- TEMA -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"> Tema </label>
+
+                  <input
+                    type="text"
+                    name="subject"
+                    class="form-control"
+                    value="{{ subject }}"
+                    placeholder="Tema do evento"
+                  />
+                </div>
+
+                <!-- IDIOMA -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"> Idioma </label>
+
+                  <select name="language" class="form-select">
+                    <option value="">---</option>
+
+                    {% for lng_option in languages %}
+                    <option value="{{lng_option}}">{{ lng_option }}</option>
+                    {% endfor %}
+                  </select>
+
+                  <div class="mt-2">
+                    <a
+                      href="{% url 'register_language' %}"
+                      class="small text-decoration-none"
+                    >
+                      Não está achando? Crie um idioma agora!
+                    </a>
+                  </div>
+                </div>
+
+                <!-- LINK -->
+                <div class="col-12">
+                  <label class="form-label fw-semibold"> Link Externo </label>
+
+                  <input
+                    type="url"
+                    name="external_link"
+                    class="form-control"
+                    value="{{ external_link }}"
+                    placeholder="https://"
+                  />
+                </div>
+
+                <!-- PÚBLICO -->
+                <div class="col-12">
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      name="is_public"
+                      id="is_public"
+                      {%
+                      if
+                      is_public
+                      %}checked{%
+                      endif
+                      %}
+                    />
+
+                    <label class="form-check-label" for="is_public">
+                      Evento público
+                    </label>
+                  </div>
+                </div>
+
+                <!-- DESCRIÇÃO -->
+                <div class="col-12">
+                  <label class="form-label fw-semibold"> Descrição </label>
+
+                  <textarea
+                    name="description"
+                    rows="5"
+                    class="form-control"
+                    placeholder="Descreva o evento"
+                  >
+                            {{ description }}
+                    </textarea
+                  >
+                </div>
+              </div>
             </div>
 
+            <!-- ENDEREÇO -->
+            <div class="mb-5">
+              <h4 class="fw-bold mb-4">Endereço</h4>
+
+              <div class="row g-4">
+                <!-- BUSCA -->
+                <div class="col-12">
+                  <label class="form-label fw-semibold">
+                    Localização do Evento
+                  </label>
+
+                  <div id="autocomplete"></div>
+
+                  <div class="form-text">
+                    Digite o endereço e selecione uma das sugestões.
+                  </div>
+                </div>
+
+                <!-- MAPA -->
+                <div class="col-12">
+                  <div
+                    id="mapa"
+                    class="border rounded-4 overflow-hidden shadow-sm"
+                    style="height: 400px"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- CAMPOS OCULTOS -->
+              <input type="hidden" id="id_place_name" name="place_name" />
+              <input type="hidden" id="id_street" name="street" />
+              <input type="hidden" id="id_number" name="number" />
+              <input type="hidden" id="id_neighborhood" name="neighborhood" />
+              <input type="hidden" id="id_cep" name="cep" />
+
+              <input type="hidden" id="id_city" name="city_name" />
+              <input type="hidden" id="id_state" name="state_name" />
+              <input type="hidden" id="id_uf" name="state_uf" />
+
+              <input type="hidden" id="id_country" name="country_name" />
+              <input type="hidden" id="id_country_abbr" name="country_abbr" />
+            </div>
+
+            <!-- DADOS DA HIERARQUIA -->
+            <div id="hierarchy-data" style="display: none">
+              {% for college_key, college_label in college_choices %}
+              <div
+                class="college-data"
+                data-key="{{ college_key }}"
+                data-label="{{ college_label }}"
+              >
+                {% for area in areas %} {% if area.college == college_key %}
+                <div
+                  class="area-data"
+                  data-id="{{ area.id }}"
+                  data-name="{{ area.name }}"
+                >
+                  {% for category in area.categories.all %}
+                  <div
+                    class="category-data"
+                    data-id="{{ category.id }}"
+                    data-name="{{ category.name }}"
+                  ></div>
+                  {% endfor %}
+                </div>
+                {% endif %} {% endfor %}
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- CATEGORIAS -->
+            <div class="mb-5">
+              <h4 class="fw-bold mb-4">Categorias</h4>
+
+              <!-- TRIGGER -->
+              <div
+                id="cat-trigger"
+                class="d-flex justify-content-between align-items-center px-3"
+                style="
+                  height: 42px;
+                  border: 0.5px solid var(--bs-border-color);
+                  border-radius: var(--bs-border-radius);
+                  cursor: pointer;
+                  background: var(--bs-body-bg);
+                  user-select: none;
+                "
+              >
+                <span
+                  id="cat-trigger-label"
+                  style="font-size: 14px; color: var(--bs-secondary-color)"
+                >
+                  Selecione colégio, área e categoria
+                </span>
+                <i
+                  class="bi bi-chevron-down"
+                  id="cat-arrow"
+                  style="
+                    font-size: 13px;
+                    color: var(--bs-secondary-color);
+                    transition: transform 0.2s;
+                  "
+                ></i>
+              </div>
+
+              <!-- PAINEL -->
+              <div
+                id="cat-panel"
+                style="
+                  display: none;
+                  border: 1px solid var(--bs-border-color);
+                  border-top: none;
+                  border-radius: 0 0 var(--bs-border-radius)
+                    var(--bs-border-radius);
+                  background: var(--bs-body-bg);
+                  overflow: hidden;
+                "
+              ></div>
+
+              <!-- TAGS -->
+              <div id="cat-tags" class="d-flex flex-wrap gap-2 mt-3"></div>
+
+              <!-- HIDDENS -->
+              <div id="cat-hidden"></div>
+            </div>
+
+            <!-- ETAPAS -->
+            <div class="mb-5">
+              <div
+                class="d-flex justify-content-between align-items-center mb-4"
+              >
+                <h4 class="fw-bold mb-0">Etapas do Evento</h4>
+
+                <button
+                  type="button"
+                  class="btn btn-outline-primary btn-sm"
+                  id="add-stage-btn"
+                >
+                  <i class="bi bi-plus-circle me-2"></i>
+                  Adicionar Etapa
+                </button>
+              </div>
+
+              <div id="stages-container">
+                <!-- ITEM ETAPA -->
+                <div class="border rounded-4 p-4 mb-4 stage-item">
+                  <div class="row g-4">
+                    <!-- TIPO -->
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold">
+                        Tipo da Etapa
+                      </label>
+
+                      <select name="stage_type[]" class="form-select">
+                        {{ event_stage_type_options }}
+                      </select>
+
+                      <div class="mt-2">
+                        <a href="#" class="small text-decoration-none">
+                          Não está achando? Crie um tipo agora!
+                        </a>
+                      </div>
+                    </div>
+
+                    <!-- INÍCIO -->
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold">
+                        Data Inicial
+                      </label>
+
+                      <input
+                        type="datetime-local"
+                        name="stage_start_date[]"
+                        class="form-control"
+                      />
+                    </div>
+
+                    <!-- FIM -->
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold"> Data Final </label>
+
+                      <input
+                        type="datetime-local"
+                        name="stage_end_date[]"
+                        class="form-control"
+                      />
+
+                      <!-- REMOVER -->
+                      <div class="text-end mt-2">
+                        <button
+                          type="button"
+                          class="btn btn-outline-danger btn-sm remove-stage-btn"
+                        >
+                          <i class="bi bi-trash me-2"></i>
+                          Remover Etapa
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PREÇOS -->
+            <div class="mb-5">
+              <div
+                class="d-flex justify-content-between align-items-center mb-4"
+              >
+                <h4 class="fw-bold mb-0">Preços</h4>
+
+                <button
+                  type="button"
+                  class="btn btn-outline-primary btn-sm"
+                  id="add-price-btn"
+                >
+                  <i class="bi bi-plus-circle me-2"></i>
+                  Adicionar Preço
+                </button>
+              </div>
+
+              <div id="prices-container">
+                <!-- ITEM PREÇO -->
+                <div class="border rounded-4 p-4 mb-4 price-item">
+                  <div class="row g-4">
+                    <!-- CATEGORIA -->
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold"> Categoria </label>
+
+                      <select name="price_category[]" class="form-select">
+                        <option value="PROFISSIONAL">Profissional</option>
+
+                        <option value="POS">Pós-graduação</option>
+
+                        <option value="GRADUACAO">Graduação</option>
+                      </select>
+                    </div>
+
+                    <!-- LOTE -->
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold"> Lote </label>
+
+                      <input
+                        type="text"
+                        name="batch[]"
+                        class="form-control"
+                        placeholder="Lote 1"
+                      />
+                    </div>
+
+                    <!-- PREÇO -->
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold"> Preço </label>
+
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="price[]"
+                        class="form-control"
+                        placeholder="0.00"
+                      />
+
+                      <!-- REMOVER -->
+                      <div class="text-end mt-2">
+                        <button
+                          type="button"
+                          class="btn btn-outline-danger btn-sm remove-pricebatch-btn"
+                        >
+                          <i class="bi bi-trash me-2"></i>
+                          Remover Precificação
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTÕES -->
+            <div class="d-grid d-md-flex justify-content-md-end gap-3">
+              <a href="{% url 'home' %}" class="btn btn-outline-secondary px-4">
+                Cancelar
+              </a>
+
+              <button type="submit" class="btn btn-outline-primary px-4">
+                <i class="bi bi-check-circle me-2"></i>
+                Salvar Evento e Adicionar Outro
+              </button>
+
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check-circle me-2"></i>
+                Salvar Evento
+              </button>
+            </div>
+          </form>
         </div>
-
+      </div>
     </div>
-
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script type="module">
-    import { GeocoderAutocomplete } from "https://cdn.jsdelivr.net/npm/@geoapify/geocoder-autocomplete@2.0.1/+esm";
+  import { GeocoderAutocomplete } from "https://cdn.jsdelivr.net/npm/@geoapify/geocoder-autocomplete@2.0.1/+esm";
 
-    const apiKey = "{{ geoapify_key }}";
+  const apiKey = "{{ geoapify_key }}";
 
-    if (!apiKey || apiKey.includes("{")) {
-        console.error("Chave Geoapify ausente.");
-    } else {
+  if (!apiKey || apiKey.includes("{")) {
+    console.error("Chave Geoapify ausente.");
+  } else {
+    // MAPA
+    const mapa = L.map("mapa").setView([-3.7319, -38.5267], 13);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap",
+    }).addTo(mapa);
+    const marcador = L.marker([-3.7319, -38.5267]).addTo(mapa);
+    setTimeout(() => mapa.invalidateSize(), 200);
 
-        // MAPA
-        const mapa = L.map("mapa").setView([-3.7319, -38.5267], 13);
-        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution: "© OpenStreetMap"
-        }).addTo(mapa);
-        const marcador = L.marker([-3.7319, -38.5267]).addTo(mapa);
-        setTimeout(() => mapa.invalidateSize(), 200);
+    // AUTOCOMPLETE
+    const autocomplete = new GeocoderAutocomplete(
+      document.getElementById("autocomplete"),
+      apiKey,
+      {
+        lang: "pt",
+        placeholder: "Pesquise o endereço do evento",
+        skipIcons: false,
+        addDetails: true,
+      }, // countryCodes: ["br"]
+    );
 
-        // AUTOCOMPLETE
-        const autocomplete = new GeocoderAutocomplete(
-            document.getElementById("autocomplete"),
-            apiKey,
-            { lang: "pt", placeholder: "Pesquise o endereço do evento", skipIcons: false, addDetails: true, } // countryCodes: ["br"]
+    // REFORMATA AS SUGESTÕES ANTES DE EXIBIR
+    autocomplete.on("suggestions", function (suggestions) {
+      suggestions.forEach(function (suggestion) {
+        if (!suggestion.properties) return;
+        const p = suggestion.properties;
 
-        );
+        // Monta texto legível: "Rua X, 123 - Bairro, Cidade - UF"
+        const parts = [
+          p.name || "",
+          p.street && p.housenumber
+            ? `${p.street}, ${p.housenumber}`
+            : p.street || "",
+          p.suburb || "",
+          p.city ? `${p.city}${p.state_code ? " - " + p.state_code : ""}` : "",
+        ].filter(Boolean);
 
-        // REFORMATA AS SUGESTÕES ANTES DE EXIBIR
-        autocomplete.on("suggestions", function(suggestions) {
-            suggestions.forEach(function(suggestion) {
-                if (!suggestion.properties) return;
-                const p = suggestion.properties;
+        suggestion.properties.formatted = parts.join(" · ");
+      });
+    });
 
-                // Monta texto legível: "Rua X, 123 - Bairro, Cidade - UF"
-                const parts = [
-                    p.name || "",
-                    p.street && p.housenumber ? `${p.street}, ${p.housenumber}` : p.street || "",
-                    p.suburb || "",
-                    p.city ? `${p.city}${p.state_code ? " - " + p.state_code : ""}` : "",
-                ].filter(Boolean);
+    autocomplete.on("select", function (location) {
+      if (!location?.properties) return;
+      const props = location.properties;
 
-                suggestion.properties.formatted = parts.join(" · ");
+      mapa.setView([props.lat, props.lon], 17);
+      marcador.setLatLng([props.lat, props.lon]);
+      mapa.invalidateSize();
+
+      document.getElementById("id_place_name").value =
+        props.name || props.address_line1 || "";
+      document.getElementById("id_street").value = props.street || "";
+      document.getElementById("id_number").value = props.housenumber || "";
+      document.getElementById("id_neighborhood").value = props.suburb || "";
+      document.getElementById("id_cep").value = props.postcode || "";
+      document.getElementById("id_city").value = props.city || "";
+      document.getElementById("id_state").value = props.state || "";
+      document.getElementById("id_uf").value = props.state_code || "";
+      document.getElementById("id_country").value = props.country || "";
+      document.getElementById("id_country_abbr").value =
+        props.country_code || "";
+    });
+  }
+
+  // CATEGORIAS
+  // CATEGORIAS — lê hierarquia dos data-*
+  const catPanel = document.getElementById("cat-panel");
+  const catTrigger = document.getElementById("cat-trigger");
+  const catLabel = document.getElementById("cat-trigger-label");
+  const catArrow = document.getElementById("cat-arrow");
+  const catTags = document.getElementById("cat-tags");
+  const catHidden = document.getElementById("cat-hidden");
+
+  const selected = [];
+
+  // MONTA PAINEL A PARTIR DOS data-*
+  document.querySelectorAll(".college-data").forEach((collegeEl) => {
+    const colHeader = document.createElement("div");
+    colHeader.style.cssText = `
+        padding: .35rem .75rem;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--bs-secondary-color);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        background: var(--bs-secondary-bg);
+        border-bottom: 0.5px solid var(--bs-border-color);
+    `;
+    colHeader.textContent = collegeEl.dataset.label;
+    catPanel.appendChild(colHeader);
+
+    collegeEl.querySelectorAll(".area-data").forEach((areaEl) => {
+      const areaHeader = document.createElement("div");
+      areaHeader.className = "area-header";
+      areaHeader.innerHTML = `
+            <i class="bi bi-folder" style="font-size:15px;"></i>
+            ${areaEl.dataset.name}
+            <i class="bi bi-chevron-right area-arrow"></i>
+        `;
+
+      const catList = document.createElement("div");
+      catList.className = "cat-list";
+
+      areaEl.querySelectorAll(".category-data").forEach((catEl) => {
+        const item = document.createElement("label");
+        item.className = "cat-item";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.className = "form-check-input";
+        cb.value = catEl.dataset.id;
+
+        item.appendChild(cb);
+        item.append(catEl.dataset.name);
+
+        cb.addEventListener("change", () => {
+          if (cb.checked) {
+            selected.push({
+              id: catEl.dataset.id,
+              name: catEl.dataset.name,
+              area: areaEl.dataset.name,
+              college: collegeEl.dataset.label,
             });
+          } else {
+            const i = selected.findIndex((s) => s.id === catEl.dataset.id);
+            if (i > -1) selected.splice(i, 1);
+          }
+          renderTags();
+          updateHiddenCategories();
         });
 
-        autocomplete.on("select", function(location) {
-            if (!location?.properties) return;
-            const props = location.properties;
+        catList.appendChild(item);
+      });
 
-            mapa.setView([props.lat, props.lon], 17);
-            marcador.setLatLng([props.lat, props.lon]);
-            mapa.invalidateSize();
-            
-            document.getElementById("id_place_name").value = props.name || props.address_line1 || "";
-            document.getElementById("id_street").value       = props.street || "";
-            document.getElementById("id_number").value       = props.housenumber || "";
-            document.getElementById("id_neighborhood").value = props.suburb || "";
-            document.getElementById("id_cep").value          = props.postcode || "";
-            document.getElementById("id_city").value         = props.city || "";
-            document.getElementById("id_state").value        = props.state || "";
-            document.getElementById("id_uf").value           = props.state_code || "";
-            document.getElementById("id_country").value      = props.country || "";
-            document.getElementById("id_country_abbr").value = props.country_code || "";
-        });
-    }
+      areaHeader.addEventListener("click", () => {
+        areaHeader.classList.toggle("open");
+        catList.classList.toggle("open");
+      });
 
-    // ETAPAS
-    document.getElementById("add-stage-btn").addEventListener("click", function () {
-        const stageItem = document.querySelector(".stage-item");
-        const newStage = stageItem.cloneNode(true);
-        newStage.querySelectorAll("input").forEach(i => i.value = "");
-        newStage.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
-        document.getElementById("stages-container").appendChild(newStage);
+      catPanel.appendChild(areaHeader);
+      catPanel.appendChild(catList);
+    });
+  });
+
+  // ABRE/FECHA PAINEL
+  catTrigger.addEventListener("click", () => {
+    const isOpen = catPanel.style.display === "block";
+    catPanel.style.display = isOpen ? "none" : "block";
+    catArrow.style.transform = isOpen ? "" : "rotate(180deg)";
+  });
+
+  // RENDERIZA TAGS
+  function renderTags() {
+    catTags.innerHTML = "";
+    selected.forEach((s) => {
+      const tag = document.createElement("span");
+      tag.className = "cat-tag";
+      tag.innerHTML = `
+            ${s.name}
+            <span style="color:var(--bs-secondary-color); font-size:11px;">${s.area}</span>
+        `;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "×";
+      btn.setAttribute("aria-label", `Remover ${s.name}`);
+      btn.addEventListener("click", () => {
+        const cb = catPanel.querySelector(`input[value="${s.id}"]`);
+        if (cb) cb.checked = false;
+        const i = selected.findIndex((x) => x.id === s.id);
+        if (i > -1) selected.splice(i, 1);
+        renderTags();
+        updateHiddenCategories();
+      });
+
+      tag.appendChild(btn);
+      catTags.appendChild(tag);
     });
 
-    document.getElementById("stages-container").addEventListener("click", function (e) {
-        if (e.target.closest(".remove-stage-btn")) {
-            const all = document.querySelectorAll(".stage-item");
-            if (all.length > 1) e.target.closest(".stage-item").remove();
-        }
+    catLabel.style.color = selected.length
+      ? "var(--bs-body-color)"
+      : "var(--bs-secondary-color)";
+    catLabel.textContent = selected.length
+      ? `${selected.length} categoria(s) selecionada(s)`
+      : "Selecione colégio, área e categoria";
+  }
+
+  // ATUALIZA INPUTS HIDDEN
+  function updateHiddenCategories() {
+    catHidden.innerHTML = "";
+    selected.forEach((s) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "categories";
+      input.value = s.id;
+      catHidden.appendChild(input);
+    });
+  }
+
+  // ETAPAS
+  document
+    .getElementById("add-stage-btn")
+    .addEventListener("click", function () {
+      const stageItem = document.querySelector(".stage-item");
+      const newStage = stageItem.cloneNode(true);
+      newStage.querySelectorAll("input").forEach((i) => (i.value = ""));
+      newStage.querySelectorAll("select").forEach((s) => (s.selectedIndex = 0));
+      document.getElementById("stages-container").appendChild(newStage);
     });
 
-    // PREÇOS
-    document.getElementById("add-price-btn").addEventListener("click", function () {
-        const priceItem = document.querySelector(".price-item");
-        const newPrice = priceItem.cloneNode(true);
-        newPrice.querySelectorAll("input").forEach(i => i.value = "");
-        newPrice.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
-        document.getElementById("prices-container").appendChild(newPrice);
+  document
+    .getElementById("stages-container")
+    .addEventListener("click", function (e) {
+      if (e.target.closest(".remove-stage-btn")) {
+        const all = document.querySelectorAll(".stage-item");
+        if (all.length > 1) e.target.closest(".stage-item").remove();
+      }
     });
 
-    document.getElementById("prices-container").addEventListener("click", function (e) {
-        if (e.target.closest(".remove-pricebatch-btn")) {
-            const all = document.querySelectorAll(".price-item");
-            if (all.length > 1) e.target.closest(".price-item").remove();
-        }
+  // PREÇOS
+  document
+    .getElementById("add-price-btn")
+    .addEventListener("click", function () {
+      const priceItem = document.querySelector(".price-item");
+      const newPrice = priceItem.cloneNode(true);
+      newPrice.querySelectorAll("input").forEach((i) => (i.value = ""));
+      newPrice.querySelectorAll("select").forEach((s) => (s.selectedIndex = 0));
+      document.getElementById("prices-container").appendChild(newPrice);
+    });
+
+  document
+    .getElementById("prices-container")
+    .addEventListener("click", function (e) {
+      if (e.target.closest(".remove-pricebatch-btn")) {
+        const all = document.querySelectorAll(".price-item");
+        if (all.length > 1) e.target.closest(".price-item").remove();
+      }
     });
 </script>
-
-
-
 
 {% endblock %}
