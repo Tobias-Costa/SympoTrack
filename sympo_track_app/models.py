@@ -10,12 +10,9 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 
-# Create your models here.
-
 # -----------------------------------------------------------
 # USUÁRIO
 # -----------------------------------------------------------
-
 
 class UserManager(BaseUserManager):
     def _create_user(
@@ -113,10 +110,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None):
         """Envia um e-mail para este usuário"""
         send_mail(subject, message, from_email, [self.email])
-
-
-from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 # -----------------------------------------------------------
 # CADASTRO DE EVENTO
@@ -221,6 +214,13 @@ class EventCategoriesArea(models.Model):
     name = models.CharField(_("Nome"), max_length=255)
     college = models.CharField(_("Colégio"), max_length=8, choices=College.choices)
 
+    class Meta:
+            verbose_name = _("Área de categoria do evento")
+            verbose_name_plural = _("Áreas de categorias dos eventos")
+    
+    def __str__(self):
+        return self.name
+
 
 class EventCategories(models.Model):
     name = models.CharField(_("Nome"), max_length=255)
@@ -300,6 +300,9 @@ class EventCategoryRel(models.Model):
         verbose_name = _("Relação de categoria")
         verbose_name_plural = _("Relações de categorias")
         unique_together = ("category", "event")
+
+    def __str__(self):
+        return f"{self.event.title} - {self.category.name}"
 
 
 class EventStagesType(models.Model):

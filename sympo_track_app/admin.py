@@ -11,6 +11,7 @@ from .models import (
     EventCategories,
     Event,
     EventCategoryRel,
+    EventCategoriesArea,
     EventStagesType,
     EventStage,
     EventPricing,
@@ -84,6 +85,7 @@ admin.site.register(EventAddress)
 admin.site.register(EventCategories)
 admin.site.register(Event)
 admin.site.register(EventCategoryRel)
+admin.site.register(EventCategoriesArea)
 admin.site.register(EventStagesType)
 admin.site.register(EventStage)
 admin.site.register(EventPricing)

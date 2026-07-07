@@ -64,7 +64,7 @@ def register_event(request):
             city, _ = City.objects.get_or_create(name=city_name, state=state)
 
             # ENDEREÇOS
-            address = EventAddress.objects.get_or_create(
+            address, _ = EventAddress.objects.get_or_create(
                 place_name=request.POST.get("place_name"),
                 street=request.POST.get("street"),
                 city=city,
@@ -102,12 +102,11 @@ def register_event(request):
 
             # CATEGORIAS
             category_ids = request.POST.getlist("categories")
-            for category_id in category_ids:
-                category = EventCategories.objects.filter(id=category_id).first()
-                if category:
-                    EventCategoryRel.objects.get_or_create(
-                        event=event, category=category
-                    )
+            if category_ids:
+                # Exclui categorias existentes relacionadas com o evento e adiciona ou mantém as escolhidas no select
+                event.categories.set(
+                    EventCategories.objects.filter(id__in=category_ids)
+                )
 
         except Exception as e:
             messages.error(request, f"Erro ao salvar evento")
