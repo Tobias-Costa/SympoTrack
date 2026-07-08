@@ -190,7 +190,7 @@
                   <label class="form-label fw-semibold"> Idioma </label>
 
                   <select name="language" class="form-select">
-                    <option value="">---</option>
+                    <option value="" selected disabled>---</option>
 
                     {% for lng_option in languages %}
                     <option value="{{lng_option}}">{{ lng_option }}</option>
@@ -399,9 +399,9 @@
                       </label>
 
                       <select name="stage_type[]" class="form-select">
-                        <option value="">---</option>
+                        <option value="" selected disabled>---</option>
                         {% for stage_type in event_stage_type_options %}
-                          <option value="{{ stage_type }}">{{ stage_type }}</option>
+                          <option value="{{ stage_type.id }}">{{ stage_type }}</option>
                         {% endfor %}
                       </select>
 
@@ -770,7 +770,7 @@
         // Captura a data de hoje no formato YYYY-MM-DD
         const hoje = new Date().toISOString().split('T')[0];
         i.value = `${hoje}T00:00`;
-      } else {(i.value = "")}
+      } else {i.value = ""}
     });
       newStage.querySelectorAll("select").forEach((s) => (s.selectedIndex = 0));
       document.getElementById("stages-container").appendChild(newStage);

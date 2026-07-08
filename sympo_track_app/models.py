@@ -334,7 +334,7 @@ class EventStage(models.Model):
         verbose_name_plural = _("Etapas do evento")
 
     def __str__(self):
-        return f"{self.event.title} - {self.stage_type.event_stage_type_name}"
+        return f"{self.event.title} - {self.stage_type.name}"
 
 
 class EventPricing(models.Model):

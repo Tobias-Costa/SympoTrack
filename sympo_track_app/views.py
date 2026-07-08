@@ -47,11 +47,8 @@ def register_event(request):
         state_uf = request.POST.get("state_uf")
 
         city_name = request.POST.get("city_name")
-        print("country_name:", request.POST.get("country_name"))
-        print("state_name:", request.POST.get("state_name"))
-        print("city_name:", request.POST.get("city_name"))
 
-        if not (country_name and state_name and city_name):
+        if not city_name:
             messages.error(request, "Selecione um endereço válido no mapa.")
             return render(request, "register_event.html", context)
 
@@ -59,17 +56,17 @@ def register_event(request):
             # Se alguma operação falhar, todas as alterações no BD serão canceladas
             with transaction.atomic():
 
-                # PAÍS
+                # PAÍS — cria um genérico se não vier
                 country, _ = Country.objects.get_or_create(
-                    name=country_name,
-                    defaults={"abbr": country_abbr.upper() or country_name[:10]},
+                    name=country_name or "(Não informado)",
+                    defaults={"abbr": country_abbr.upper() if country_abbr else "N/I"},
                 )
 
-                # ESTADO
+                # ESTADO — cria um genérico se não vier
                 state, _ = State.objects.get_or_create(
-                    name=state_name,
+                    name=state_name or "(Não informado)",
                     country=country,
-                    defaults={"uf": state_uf.upper() or state_name[:10]},
+                    defaults={"uf": state_uf.upper() if state_uf else "N/I"},
                 )
 
                 # CIDADE
@@ -157,7 +154,9 @@ def register_event(request):
             # Seção de mensagens de sucesso e falha
             messages.success(request, "Evento cadastrado com sucesso.")
         except Exception as e:
-            messages.error(request, f"Erro ao salvar evento")
+            import traceback
+            print(traceback.format_exc()) 
+            messages.error(request, f"Erro ao salvar evento: {e}")
 
     return render(request, "register_event.html", context)
 
