@@ -306,14 +306,14 @@ class EventCategoryRel(models.Model):
 
 
 class EventStagesType(models.Model):
-    event_stage_type_name = models.CharField(_("Nome da etapa"), max_length=255)
+    name = models.CharField(_("Nome da etapa"), max_length=255)
 
     class Meta:
         verbose_name = _("Tipo de etapa")
         verbose_name_plural = _("Tipos de etapas")
 
     def __str__(self):
-        return self.event_stage_type_name
+        return self.name
 
 
 class EventStage(models.Model):

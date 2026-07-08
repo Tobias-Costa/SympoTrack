@@ -228,12 +228,7 @@
                       class="form-check-input"
                       name="is_public"
                       id="is_public"
-                      {%
-                      if
-                      is_public
-                      %}checked{%
-                      endif
-                      %}
+                      checked
                     />
 
                     <label class="form-check-label" for="is_public">
@@ -246,15 +241,9 @@
                 <div class="col-12">
                   <label class="form-label fw-semibold"> Descrição </label>
 
-                  <textarea
-                    name="description"
-                    rows="5"
-                    class="form-control"
-                    placeholder="Descreva o evento"
-                  >
-                            {{ description }}
-                    </textarea
-                  >
+                  <textarea name="description" rows="5" class="form-control" placeholder="Descreva o evento">
+                      {{ description }}
+                  </textarea>
                 </div>
               </div>
             </div>
@@ -302,7 +291,7 @@
               <input type="hidden" id="id_country_abbr" name="country_abbr" />
             </div>
 
-            <!-- DADOS DA HIERARQUIA -->
+            <!-- DADOS DA HIERARQUIA DE CATEGORIAS -->
             <div id="hierarchy-data" style="display: none">
               {% for college_key, college_label in college_choices %}
               <div
@@ -386,9 +375,7 @@
 
             <!-- ETAPAS -->
             <div class="mb-5">
-              <div
-                class="d-flex justify-content-between align-items-center mb-4"
-              >
+              <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold mb-0">Etapas do Evento</h4>
 
                 <button
@@ -412,11 +399,14 @@
                       </label>
 
                       <select name="stage_type[]" class="form-select">
-                        {{ event_stage_type_options }}
+                        <option value="">---</option>
+                        {% for stage_type in event_stage_type_options %}
+                          <option value="{{ stage_type }}">{{ stage_type }}</option>
+                        {% endfor %}
                       </select>
 
                       <div class="mt-2">
-                        <a href="#" class="small text-decoration-none">
+                        <a href="{% url 'register_stage_type' %}" class="small text-decoration-none">
                           Não está achando? Crie um tipo agora!
                         </a>
                       </div>
@@ -432,6 +422,7 @@
                         type="datetime-local"
                         name="stage_start_date[]"
                         class="form-control"
+                        value="{% now 'Y-m-d' %}T00:00"
                       />
                     </div>
 
@@ -443,6 +434,7 @@
                         type="datetime-local"
                         name="stage_end_date[]"
                         class="form-control"
+                        value="{% now 'Y-m-d' %}T00:00"
                       />
 
                       <!-- REMOVER -->
@@ -773,7 +765,13 @@
     .addEventListener("click", function () {
       const stageItem = document.querySelector(".stage-item");
       const newStage = stageItem.cloneNode(true);
-      newStage.querySelectorAll("input").forEach((i) => (i.value = ""));
+      newStage.querySelectorAll("input").forEach((i) => {
+        if (i.type === "datetime-local") {
+        // Captura a data de hoje no formato YYYY-MM-DD
+        const hoje = new Date().toISOString().split('T')[0];
+        i.value = `${hoje}T00:00`;
+      } else {(i.value = "")}
+    });
       newStage.querySelectorAll("select").forEach((s) => (s.selectedIndex = 0));
       document.getElementById("stages-container").appendChild(newStage);
     });
