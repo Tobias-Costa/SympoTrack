@@ -550,6 +550,14 @@
   </div>
 </div>
 
+<script type="application/json" id="form-data">
+{
+    "stages":     {{ stages_data|safe }},
+    "prices":     {{ prices_data|safe }},
+    "categories": {{ selected_categories|safe }}
+}
+</script>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script type="module">
@@ -804,6 +812,76 @@
         if (all.length > 1) e.target.closest(".price-item").remove();
       }
     });
+  
+  // REPOPULAR CATEGORIAS, ETAPAS E PREÇOS EM CASO DE ERRO
+  const formData           = JSON.parse(document.getElementById("form-data").textContent);
+  const stagesData         = formData.stages     || [];
+  const pricesData         = formData.prices     || [];
+  const selectedCategories = formData.categories || [];
+
+  console.log("stages raw:", formData.dataset.stages);
+  console.log("prices raw:", formData.dataset.prices);
+  console.log("categories raw:", formData.dataset.categories);
+  
+  console.log("stagesData:", stagesData);
+  console.log("pricesData:", pricesData);
+  console.log("selectedCategories:", selectedCategories);
+  
+  if (selectedCategories.length > 0) {
+      selectedCategories.forEach(id => {
+          // marca o checkbox correspondente
+          const cb = catPanel.querySelector(`input[value="${id}"]`);
+          if (!cb) return;
+
+          cb.checked = true;
+
+          // abre a área pai para o usuário ver o que está selecionado
+          const catList   = cb.closest(".cat-list");
+          const areaHeader = catList?.previousElementSibling;
+          if (catList)    catList.classList.add("open");
+          if (areaHeader) areaHeader.classList.add("open");
+
+          // adiciona ao array selected para as tags funcionarem
+          selected.push({
+              id:      id.toString(),
+              name:    cb.parentElement.textContent.trim(),
+              area:    areaHeader?.textContent.trim() || "",
+              college: "",
+          });
+      });
+
+      // renderiza as tags com as categorias selecionadas
+      renderTags();
+      updateHiddenCategories();
+  }
+
+  if (stagesData.length > 0) {
+      const stagesContainer = document.getElementById("stages-container");
+      const stageTemplate   = stagesContainer.querySelector(".stage-item").cloneNode(true);
+      stagesContainer.innerHTML = "";
+
+      stagesData.forEach(([stageTypeId, startDate, endDate]) => {
+          const newStage = stageTemplate.cloneNode(true);
+          newStage.querySelector("select[name='stage_type[]']").value      = stageTypeId;
+          newStage.querySelector("input[name='stage_start_date[]']").value = startDate;
+          newStage.querySelector("input[name='stage_end_date[]']").value   = endDate;
+          stagesContainer.appendChild(newStage);
+      });
+  }
+
+  if (pricesData.length > 0) {
+      const pricesContainer = document.getElementById("prices-container");
+      const priceTemplate   = pricesContainer.querySelector(".price-item").cloneNode(true);
+      pricesContainer.innerHTML = "";
+
+      pricesData.forEach(([category, batch, price]) => {
+          const newPrice = priceTemplate.cloneNode(true);
+          newPrice.querySelector("select[name='price_category[]']").value = category;
+          newPrice.querySelector("input[name='batch[]']").value           = batch;
+          newPrice.querySelector("input[name='price[]']").value           = price;
+          pricesContainer.appendChild(newPrice);
+      });
+  }
 </script>
 
 {% endblock %}

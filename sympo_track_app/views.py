@@ -36,9 +36,56 @@ def register_event(request):
                 "areas": areas,
                 "college_choices": EventCategoriesArea.College.choices,
                 "event_stage_type_options": event_stage_types,
+                "selected_categories": [],
+                "stages_data": [], 
+                "prices_data": [],
             }
 
     if request.method == "POST":
+        # Atualizando context com dados do formulário
+        context.update({
+            # INFORMAÇÕES DO EVENTO
+            "title":         request.POST.get("title", ""),
+            "description":   request.POST.get("description", ""),
+            "subject":       request.POST.get("subject", ""),
+            "external_link": request.POST.get("external_link", ""),
+            "is_public":     request.POST.get("is_public", False),
+
+            # ENDEREÇO
+            # "place_name":   request.POST.get("place_name", ""),
+            # "street":       request.POST.get("street", ""),
+            # "number":       request.POST.get("number", ""),
+            # "neighborhood": request.POST.get("neighborhood", ""),
+            # "cep":          request.POST.get("cep", ""),
+            # "city_name":    request.POST.get("city_name", ""),
+            # "state_name":   request.POST.get("state_name", ""),
+            # "state_uf":     request.POST.get("state_uf", ""),
+            # "country_name": request.POST.get("country_name", ""),
+            # "country_abbr": request.POST.get("country_abbr", ""),
+
+            # CATEGORIAS
+            "selected_categories": request.POST.getlist("categories"),
+
+            # ETAPAS
+            "stages_data": [
+                list(item) for item in zip(
+                    request.POST.getlist("stage_type[]"),
+                    request.POST.getlist("stage_start_date[]"),
+                    request.POST.getlist("stage_end_date[]"),
+                )
+            ],
+
+            # PREÇOS
+            "prices_data": [
+                list(item) for item in zip(
+                    request.POST.getlist("price_category[]"),
+                    request.POST.getlist("batch[]"),
+                    request.POST.getlist("price[]"),
+                )
+            ],
+                    
+        })
+
         # SALVANDO ENDEREÇOS
         country_name = request.POST.get("country_name")
         country_abbr = request.POST.get("country_abbr")
