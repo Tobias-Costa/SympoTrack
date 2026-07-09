@@ -16,6 +16,7 @@ from .models import (
     EventStagesType,
     )
 from django.conf import settings
+import json
 
 @login_required
 def home(request):
@@ -31,6 +32,7 @@ def register_event(request):
     areas = EventCategoriesArea.objects.prefetch_related("categories").order_by("college", "name")
     context = {
                 "languages": languages,
+                "selected_language": None,
                 "category_options": categories,
                 "geoapify_key": settings.GEOAPIFY_API_KEY,
                 "areas": areas,
@@ -39,50 +41,54 @@ def register_event(request):
                 "selected_categories": [],
                 "stages_data": [], 
                 "prices_data": [],
+                "is_public": True,
             }
 
     if request.method == "POST":
         # Atualizando context com dados do formulário
         context.update({
             # INFORMAÇÕES DO EVENTO
-            "title":         request.POST.get("title", ""),
-            "description":   request.POST.get("description", ""),
-            "subject":       request.POST.get("subject", ""),
+            "title": request.POST.get("title", ""),
+            "description": request.POST.get("description", ""),
+            "subject": request.POST.get("subject", ""),
             "external_link": request.POST.get("external_link", ""),
-            "is_public":     request.POST.get("is_public", False),
+            "is_public": "is_public" in request.POST,
+            "selected_language": request.POST.get("language"),
+            
 
             # ENDEREÇO
-            # "place_name":   request.POST.get("place_name", ""),
-            # "street":       request.POST.get("street", ""),
-            # "number":       request.POST.get("number", ""),
-            # "neighborhood": request.POST.get("neighborhood", ""),
-            # "cep":          request.POST.get("cep", ""),
-            # "city_name":    request.POST.get("city_name", ""),
-            # "state_name":   request.POST.get("state_name", ""),
-            # "state_uf":     request.POST.get("state_uf", ""),
-            # "country_name": request.POST.get("country_name", ""),
-            # "country_abbr": request.POST.get("country_abbr", ""),
+            "address_formatted": request.POST.get("address_formatted", ""),
+            "place_name":   request.POST.get("place_name", ""),
+            "street":       request.POST.get("street", ""),
+            "number":       request.POST.get("number", ""),
+            "neighborhood": request.POST.get("neighborhood", ""),
+            "cep":          request.POST.get("cep", ""),
+            "city_name":    request.POST.get("city_name", ""),
+            "state_name":   request.POST.get("state_name", ""),
+            "state_uf":     request.POST.get("state_uf", ""),
+            "country_name": request.POST.get("country_name", ""),
+            "country_abbr": request.POST.get("country_abbr", ""),
 
             # CATEGORIAS
-            "selected_categories": request.POST.getlist("categories"),
+            "selected_categories": json.dumps(request.POST.getlist("categories")),
 
             # ETAPAS
-            "stages_data": [
+            "stages_data": json.dumps([
                 list(item) for item in zip(
                     request.POST.getlist("stage_type[]"),
                     request.POST.getlist("stage_start_date[]"),
                     request.POST.getlist("stage_end_date[]"),
                 )
-            ],
+            ]),
 
             # PREÇOS
-            "prices_data": [
+            "prices_data": json.dumps([
                 list(item) for item in zip(
                     request.POST.getlist("price_category[]"),
                     request.POST.getlist("batch[]"),
                     request.POST.getlist("price[]"),
                 )
-            ],
+            ]),
                     
         })
 
@@ -148,7 +154,7 @@ def register_event(request):
                     description=request.POST.get("description"),
                     subject=request.POST.get("subject"),
                     external_link=request.POST.get("external_link"),
-                    is_public=bool(request.POST.get("is_public")),
+                    is_public=bool("is_public" in request.POST),
                     address=address,
                     language=language,
                     creator=request.user,
@@ -200,9 +206,8 @@ def register_event(request):
 
             # Seção de mensagens de sucesso e falha
             messages.success(request, "Evento cadastrado com sucesso.")
+            return redirect("register_event")
         except Exception as e:
-            import traceback
-            print(traceback.format_exc()) 
             messages.error(request, f"Erro ao salvar evento: {e}")
 
     return render(request, "register_event.html", context)

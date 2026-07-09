@@ -190,11 +190,12 @@
                   <label class="form-label fw-semibold"> Idioma </label>
 
                   <select name="language" class="form-select">
-                    <option value="" selected disabled>---</option>
+                    <option value="" disabled {% if not selected_language %} selected {% endif %}>---</option>
 
                     {% for lng_option in languages %}
-                    <option value="{{lng_option}}">{{ lng_option }}</option>
+                      <option value="{{lng_option.language}}" {% if lng_option.language == selected_language %} selected {% endif %}>{{ lng_option }}</option>
                     {% endfor %}
+
                   </select>
 
                   <div class="mt-2">
@@ -228,7 +229,7 @@
                       class="form-check-input"
                       name="is_public"
                       id="is_public"
-                      checked
+                      {% if is_public %}checked{% endif %}
                     />
 
                     <label class="form-check-label" for="is_public">
@@ -277,18 +278,19 @@
               </div>
 
               <!-- CAMPOS OCULTOS -->
-              <input type="hidden" id="id_place_name" name="place_name" />
-              <input type="hidden" id="id_street" name="street" />
-              <input type="hidden" id="id_number" name="number" />
-              <input type="hidden" id="id_neighborhood" name="neighborhood" />
-              <input type="hidden" id="id_cep" name="cep" />
+              <input type="hidden" id="id_address_formatted" name="address_formatted" value="{{ address_formatted }}">
+              <input type="hidden" id="id_place_name" name="place_name" value="{{ place_name }}"/>
+              <input type="hidden" id="id_street" name="street" value="{{ street }}"/>
+              <input type="hidden" id="id_number" name="number" value="{{ number }}"/>
+              <input type="hidden" id="id_neighborhood" name="neighborhood" value="{{ neighborhood }}"/>
+              <input type="hidden" id="id_cep" name="cep" value="{{ cep }}"/>
 
-              <input type="hidden" id="id_city" name="city_name" />
-              <input type="hidden" id="id_state" name="state_name" />
-              <input type="hidden" id="id_uf" name="state_uf" />
+              <input type="hidden" id="id_city" name="city_name" value="{{ city_name }}"/>
+              <input type="hidden" id="id_state" name="state_name" value="{{ state_name }}"/>
+              <input type="hidden" id="id_uf" name="state_uf" value="{{ state_uf }}"/>
 
-              <input type="hidden" id="id_country" name="country_name" />
-              <input type="hidden" id="id_country_abbr" name="country_abbr" />
+              <input type="hidden" id="id_country" name="country_name" value="{{ country_name }}" />
+              <input type="hidden" id="id_country_abbr" name="country_abbr" value="{{ country_abbr }}"/>
             </div>
 
             <!-- DADOS DA HIERARQUIA DE CATEGORIAS -->
@@ -533,10 +535,10 @@
                 Cancelar
               </a>
 
-              <button type="submit" class="btn btn-outline-primary px-4">
+              <!-- <button type="submit" class="btn btn-outline-primary px-4">
                 <i class="bi bi-check-circle me-2"></i>
                 Salvar Evento e Adicionar Outro
-              </button>
+              </button> -->
 
               <button type="submit" class="btn btn-primary px-4">
                 <i class="bi bi-check-circle me-2"></i>
@@ -591,23 +593,36 @@
 
     // REFORMATA AS SUGESTÕES ANTES DE EXIBIR
     autocomplete.on("suggestions", function (suggestions) {
-      suggestions.forEach(function (suggestion) {
+    suggestions.forEach(function (suggestion) {
         if (!suggestion.properties) return;
         const p = suggestion.properties;
 
-        // Monta texto legível: "Rua X, 123 - Bairro, Cidade - UF"
+        let streetField = p.street || "";
+
+        if (streetField) {
+            // junta número se veio separado e não está na rua
+            if (p.housenumber && !streetField.includes(p.housenumber)) {
+                streetField = `${streetField}, ${p.housenumber}`;
+            }
+
+            // corrige número colado: suporta letras acentuadas
+            streetField = streetField.replace(/([a-zA-ZÀ-ÿ])(\d+)/g, "$1, $2");
+        }
+        let nameField = p.name || "";
+        if (nameField.toLowerCase().trim() === streetField.toLowerCase().trim() || streetField.toLowerCase().includes(nameField.toLowerCase())) {
+          nameField = "";
+        }
+
         const parts = [
-          p.name || "",
-          p.street && p.housenumber
-            ? `${p.street}, ${p.housenumber}`
-            : p.street || "",
-          p.suburb || "",
-          p.city ? `${p.city}${p.state_code ? " - " + p.state_code : ""}` : "",
+            nameField,
+            streetField,
+            p.suburb || "",
+            p.city ? `${p.city}${p.state_code ? " - " + p.state_code : ""}` : "",
         ].filter(Boolean);
 
         suggestion.properties.formatted = parts.join(" · ");
-      });
     });
+});
 
     autocomplete.on("select", function (location) {
       if (!location?.properties) return;
@@ -617,8 +632,8 @@
       marcador.setLatLng([props.lat, props.lon]);
       mapa.invalidateSize();
 
-      document.getElementById("id_place_name").value =
-        props.name || props.address_line1 || "";
+      document.getElementById("id_address_formatted").value = props.formatted || "";
+      document.getElementById("id_place_name").value = props.name || props.address_line1 || "";
       document.getElementById("id_street").value = props.street || "";
       document.getElementById("id_number").value = props.housenumber || "";
       document.getElementById("id_neighborhood").value = props.suburb || "";
@@ -627,8 +642,7 @@
       document.getElementById("id_state").value = props.state || "";
       document.getElementById("id_uf").value = props.state_code || "";
       document.getElementById("id_country").value = props.country || "";
-      document.getElementById("id_country_abbr").value =
-        props.country_code || "";
+      document.getElementById("id_country_abbr").value = props.country_code || "";
     });
   }
 
@@ -812,16 +826,26 @@
         if (all.length > 1) e.target.closest(".price-item").remove();
       }
     });
+
+  // REPOPULA AUTOCOMPLETE
+  const addressFormatted = document.getElementById("id_address_formatted").value;
+  if (addressFormatted) {
+      setTimeout(() => {
+          const inputEl = document.querySelector(".geoapify-autocomplete-input");
+          if (inputEl) inputEl.value = addressFormatted;
+      }, 100);
+  }  
   
   // REPOPULAR CATEGORIAS, ETAPAS E PREÇOS EM CASO DE ERRO
-  const formData           = JSON.parse(document.getElementById("form-data").textContent);
-  const stagesData         = formData.stages     || [];
+  const formDataEl = document.getElementById("form-data");
+  console.log("form-data raw:", formDataEl.textContent);
+
+  const formData = JSON.parse(formDataEl.textContent);
+  console.log("formData parsed:", formData);
+
+  const stagesData = formData.stages     || [];
   const pricesData         = formData.prices     || [];
   const selectedCategories = formData.categories || [];
-
-  console.log("stages raw:", formData.dataset.stages);
-  console.log("prices raw:", formData.dataset.prices);
-  console.log("categories raw:", formData.dataset.categories);
   
   console.log("stagesData:", stagesData);
   console.log("pricesData:", pricesData);
@@ -836,7 +860,7 @@
           cb.checked = true;
 
           // abre a área pai para o usuário ver o que está selecionado
-          const catList   = cb.closest(".cat-list");
+          const catList = cb.closest(".cat-list");
           const areaHeader = catList?.previousElementSibling;
           if (catList)    catList.classList.add("open");
           if (areaHeader) areaHeader.classList.add("open");
@@ -857,28 +881,28 @@
 
   if (stagesData.length > 0) {
       const stagesContainer = document.getElementById("stages-container");
-      const stageTemplate   = stagesContainer.querySelector(".stage-item").cloneNode(true);
+      const stageTemplate = stagesContainer.querySelector(".stage-item").cloneNode(true);
       stagesContainer.innerHTML = "";
 
       stagesData.forEach(([stageTypeId, startDate, endDate]) => {
           const newStage = stageTemplate.cloneNode(true);
-          newStage.querySelector("select[name='stage_type[]']").value      = stageTypeId;
+          newStage.querySelector("select[name='stage_type[]']").value = stageTypeId;
           newStage.querySelector("input[name='stage_start_date[]']").value = startDate;
-          newStage.querySelector("input[name='stage_end_date[]']").value   = endDate;
+          newStage.querySelector("input[name='stage_end_date[]']").value = endDate;
           stagesContainer.appendChild(newStage);
       });
   }
 
   if (pricesData.length > 0) {
       const pricesContainer = document.getElementById("prices-container");
-      const priceTemplate   = pricesContainer.querySelector(".price-item").cloneNode(true);
+      const priceTemplate = pricesContainer.querySelector(".price-item").cloneNode(true);
       pricesContainer.innerHTML = "";
 
       pricesData.forEach(([category, batch, price]) => {
           const newPrice = priceTemplate.cloneNode(true);
           newPrice.querySelector("select[name='price_category[]']").value = category;
-          newPrice.querySelector("input[name='batch[]']").value           = batch;
-          newPrice.querySelector("input[name='price[]']").value           = price;
+          newPrice.querySelector("input[name='batch[]']").value = batch;
+          newPrice.querySelector("input[name='price[]']").value = price;
           pricesContainer.appendChild(newPrice);
       });
   }
