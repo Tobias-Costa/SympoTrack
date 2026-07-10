@@ -1,0 +1,246 @@
+{% extends 'allauth/layouts/base.html' %}
+
+{% load static %}
+
+<!-- TÍTULO -->
+{% block title %}
+Grupos de Gerenciamento
+{% endblock %}
+
+<!-- CONTEÚDO -->
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- CABEÇALHO -->
+    <div class="text-center mb-5">
+
+        <div class="mb-3">
+            <i class="bi bi-people-fill text-primary"
+               style="font-size: clamp(3rem,5vw,4rem);"></i>
+        </div>
+
+        <h1 class="fw-bold">
+            Grupos de Gerenciamento
+        </h1>
+
+        <p class="text-muted">
+            Gerencie os grupos responsáveis pelos eventos.
+        </p>
+
+    </div>
+
+    <!-- BOTÃO NOVO GRUPO -->
+    <div class="d-flex justify-content-end mb-4">
+        <!-- management_group_events -->
+        <a href="{% url 'home' %}"
+           class="btn btn-primary">
+
+            <i class="bi bi-plus-circle me-2"></i>
+
+            Criar Grupo
+
+        </a>
+
+    </div>
+
+    <!-- CARD PRINCIPAL -->
+    <div class="card global-card border-0 shadow-sm">
+
+        <div class="card-body p-4">
+
+            <!-- CAMPO DE PESQUISA -->
+            <div class="row mb-4">
+
+                <div class="col-md-6">
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+
+                            <i class="bi bi-search"></i>
+
+                        </span>
+
+                        <input
+                            type="text"
+                            id="searchGroup"
+                            class="form-control"
+                            placeholder="Pesquisar grupo...">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- CASO O USUÁRIO TENHA GRUPOS -->
+            {% if management_groups %}
+
+            <div class="row g-4">
+
+                {% for group in management_groups %}
+
+                <!-- CARD DO GRUPO -->
+                <div class="col-lg-6 group-card">
+
+                    <div class="card h-100 shadow-sm border-0">
+
+                        <div class="card-body">
+
+                            <!-- NOME -->
+                            <h4 class="fw-bold">
+
+                                {{ group.name }}
+
+                            </h4>
+
+                            <!-- DESCRIÇÃO -->
+                            <p class="text-muted">
+
+                                {{ group.description|default:"(Sem descrição)" }}
+
+                            </p>
+
+                            <hr>
+
+                            <!-- INFORMAÇÕES -->
+                            <div class="row text-center">
+
+                                <div class="col-6">
+
+                                    <i class="bi bi-people-fill text-primary"></i>
+
+                                    <div>
+
+                                        <strong>
+
+                                            {{ group.members.count }}
+
+                                        </strong>
+
+                                    </div>
+
+                                    <small class="text-muted">
+
+                                        Membros
+
+                                    </small>
+
+                                </div>
+
+                                <div class="col-6">
+
+                                    <i class="bi bi-calendar-event text-success"></i>
+
+                                    <div>
+
+                                        <strong>
+
+                                            {{ group.events.count }}
+
+                                        </strong>
+
+                                    </div>
+
+                                    <small class="text-muted">
+
+                                        Eventos
+
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- BOTÃO -->
+                        <div class="card-footer bg-white border-0">
+                            <!-- management_group_events -->
+                            <a href="{% url 'home' group.id %}"
+                               class="btn btn-outline-primary w-100">
+
+                                Abrir Grupo
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% else %}
+
+            <!-- CASO NÃO TENHA GRUPOS -->
+
+            <div class="text-center py-5">
+
+                <i class="bi bi-people"
+                   style="font-size:5rem;color:#ced4da;"></i>
+
+                <h3 class="mt-4">
+
+                    Você ainda não participa de nenhum grupo.
+
+                </h3>
+
+                <p class="text-muted">
+
+                    Crie um novo grupo ou solicite participação em um grupo existente.
+
+                </p>
+                <!-- register_management_group -->
+                <a href="{% url 'home' %}"
+                   class="btn btn-primary mt-3">
+
+                    <i class="bi bi-plus-circle me-2"></i>
+
+                    Criar Grupo
+
+                </a>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- SCRIPT DE PESQUISA -->
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    const input = document.getElementById("searchGroup");
+
+    input.addEventListener("keyup", function(){
+
+        let filtro = input.value.toLowerCase();
+
+        document.querySelectorAll(".group-card").forEach(function(card){
+
+            const texto = card.innerText.toLowerCase();
+
+            card.style.display =
+                texto.includes(filtro)
+                ? ""
+                : "none";
+
+        });
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

@@ -173,7 +173,7 @@
                 </div>
 
                 <!-- TEMA -->
-                <div class="col-md-6">
+                <div class="col-md-12">
                   <label class="form-label fw-semibold"> Tema </label>
 
                   <input
@@ -206,6 +206,20 @@
                       Não está achando? Crie um idioma agora!
                     </a>
                   </div>
+                </div>
+
+                <!-- GRUPO -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold"> Grupo </label>
+
+                  <select name="group" class="form-select">
+                    <option value="" {% if not selected_group %} selected {% endif %}>Sem grupo</option>
+
+                    {% for group in groups %}
+                      <option value="{{group.id}}" {% if group.id|slugify == selected_group|slugify %} selected {% endif %}>{{ group }}</option>
+                    {% endfor %}
+
+                  </select>
                 </div>
 
                 <!-- LINK -->

@@ -15,7 +15,6 @@ from .models import (
     EventStagesType,
     EventStage,
     EventPricing,
-    EventRole,
     ManagementGroup,
     ManagementGroupMember,
     EventSubscription,
@@ -94,7 +93,6 @@ admin.site.register(EventPricing)
 # GESTÃO
 # ===========================================================
 
-admin.site.register(EventRole)
 admin.site.register(ManagementGroup)
 admin.site.register(ManagementGroupMember)
 

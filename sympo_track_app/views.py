@@ -14,6 +14,8 @@ from .models import (
     EventPricing,
     EventStage,
     EventStagesType,
+    ManagementGroup,
+    ManagementGroupMember,
     )
 from django.conf import settings
 import json
@@ -30,9 +32,12 @@ def register_event(request):
     categories = EventCategories.objects.all().order_by("name")
     event_stage_types = EventStagesType.objects.all().order_by("name")
     areas = EventCategoriesArea.objects.prefetch_related("categories").order_by("college", "name")
+    user_groups = ManagementGroup.objects.filter(members=request.user)
     context = {
                 "languages": languages,
+                "groups": user_groups,
                 "selected_language": None,
+                "selected_group": None,
                 "category_options": categories,
                 "geoapify_key": settings.GEOAPIFY_API_KEY,
                 "areas": areas,
@@ -54,6 +59,7 @@ def register_event(request):
             "external_link": request.POST.get("external_link", ""),
             "is_public": "is_public" in request.POST,
             "selected_language": request.POST.get("language"),
+            "selected_group": request.POST.get("group"),
             
 
             # ENDEREÇO
@@ -147,6 +153,13 @@ def register_event(request):
                     messages.error(request, "Selecione um idioma válido.")
                     return render(request, "register_event.html", context)
 
+                # GRUPO
+                group_id = request.POST.get("group")
+                if group_id:
+                    group = ManagementGroup.objects.filter(id=group_id).first()
+                else:
+                    group = None
+
                 # EVENTO
                 # Adicionar booleano em que se seleciona se o evento deve ser anexado a um grupo ou indivíduo
                 event = Event.objects.create(
@@ -157,6 +170,7 @@ def register_event(request):
                     is_public=bool("is_public" in request.POST),
                     address=address,
                     language=language,
+                    group=group,
                     creator=request.user,
                 )
 
@@ -207,11 +221,17 @@ def register_event(request):
             # Seção de mensagens de sucesso e falha
             messages.success(request, "Evento cadastrado com sucesso.")
             return redirect("register_event")
-        except Exception as e:
-            messages.error(request, f"Erro ao salvar evento: {e}")
+        except Exception:
+            messages.error(request, f"Erro ao salvar evento")
 
     return render(request, "register_event.html", context)
 
+
+@login_required
+def management_groups(request):
+    user_groups = ManagementGroup.objects.filter(members=request.user)
+    context = {"management_groups": user_groups}
+    return render(request, "management_groups.html", context=context)
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 @login_required
@@ -253,21 +273,3 @@ def register_stage_type(request):
             # Captura qualquer outro erro inesperado
             messages.error(request, f"Ocorreu um erro inesperado")
     return render(request, "register_event_stage_type.html")
-
-# @login_required
-# def register_category(request):
-#     if request.method == "POST":
-#         try:
-#             # Salvando categoria no model EventCategories
-#             category = EventCategories(name=request.POST.get("name"))
-#             category.save()
-#             # Atualiza buffer de messages
-#             messages.success(request, "Categoria adicionada.")
-#         except DatabaseError as e:
-#             # Captura o erro do banco de dados e avisa o usuário sem derrubar o sistema
-#             messages.error(request, f"Erro ao salvar a categoria")
-#         except Exception as e:
-#             # Captura qualquer outro erro inesperado
-#             messages.error(request, f"Ocorreu um erro inesperado")
-
-#     return render(request, "register_category.html")

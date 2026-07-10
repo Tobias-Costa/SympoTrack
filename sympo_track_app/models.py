@@ -111,6 +111,72 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Envia um e-mail para este usuário"""
         send_mail(subject, message, from_email, [self.email])
 
+
+# -----------------------------------------------------------
+# GESTÃO DO EVENTO
+# -----------------------------------------------------------
+
+
+class ManagementGroup(models.Model):
+    name = models.CharField(_("Nome"), max_length=150)
+
+    description = models.TextField(verbose_name=_("Descrição"), blank=True)
+
+    created_at = models.DateTimeField(verbose_name=_("Data de criação"), auto_now_add=True)
+
+    updated_at = models.DateTimeField(verbose_name=_("Última atualização"), auto_now=True)
+
+    members = models.ManyToManyField(
+        User,
+        through="ManagementGroupMember",
+        related_name="management_groups"
+    )
+
+    class Meta:
+        verbose_name = _("Grupo de gestão")
+        verbose_name_plural = _("Grupos de gestão")
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class ManagementGroupMember(models.Model):
+    class Role(models.TextChoices):
+        OWNER = "OWNER", "Proprietário"
+        ADMIN = "ADMIN", "Administrador"
+        MANAGER = "MANAGER", "Gestor"
+        EDITOR = "EDITOR", "Editor"
+        VIEWER = "VIEWER", "Visualizador"
+
+
+    group = models.ForeignKey(
+        ManagementGroup,
+        verbose_name=_("Grupo"),
+        on_delete=models.CASCADE,
+        related_name="group_members",
+    )
+
+    user = models.ForeignKey(
+        "User", verbose_name=_("Usuário"), on_delete=models.CASCADE
+    )
+
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.VIEWER
+    )
+
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Membro do grupo")
+        verbose_name_plural = _("Membros dos grupos")
+        unique_together = ("group", "user")
+
+    def __str__(self):
+            return f"{self.group} - {self.user.first_name}({self.role})"
+
+
 # -----------------------------------------------------------
 # CADASTRO DE EVENTO
 # -----------------------------------------------------------
@@ -277,6 +343,15 @@ class Event(models.Model):
         EventCategories, verbose_name=_("Categorias"), through="EventCategoryRel"
     )
 
+    group = models.ForeignKey(
+            ManagementGroup,
+            verbose_name=_("Grupo"),
+            on_delete=models.SET_NULL,
+            related_name="management_groups",
+            null=True,
+            blank=True,
+    )
+
     created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
 
     updated_at = models.DateTimeField(_("Última atualização"), auto_now=True)
@@ -366,62 +441,6 @@ class EventPricing(models.Model):
 
 
 # -----------------------------------------------------------
-# GESTÃO DO EVENTO
-# -----------------------------------------------------------
-
-
-class EventRole(models.Model):
-    role = models.CharField(_("Função"), max_length=255)
-
-    class Meta:
-        verbose_name = _("Função do evento")
-        verbose_name_plural = _("Funções do evento")
-
-    def __str__(self):
-        return self.role
-
-
-class ManagementGroup(models.Model):
-    name = models.CharField(_("Nome"), max_length=255)
-
-    event = models.ForeignKey(
-        Event,
-        verbose_name=_("Evento"),
-        on_delete=models.CASCADE,
-        related_name="management_groups",
-    )
-
-    class Meta:
-        verbose_name = _("Grupo de gestão")
-        verbose_name_plural = _("Grupos de gestão")
-
-    def __str__(self):
-        return f"{self.name} - {self.event.title}"
-
-
-class ManagementGroupMember(models.Model):
-    group = models.ForeignKey(
-        ManagementGroup,
-        verbose_name=_("Grupo"),
-        on_delete=models.CASCADE,
-        related_name="members",
-    )
-
-    user = models.ForeignKey(
-        "User", verbose_name=_("Usuário"), on_delete=models.CASCADE
-    )
-
-    role = models.ForeignKey(
-        EventRole, verbose_name=_("Função"), on_delete=models.CASCADE
-    )
-
-    class Meta:
-        verbose_name = _("Membro do grupo")
-        verbose_name_plural = _("Membros dos grupos")
-        unique_together = ("group", "user", "role")
-
-
-# -----------------------------------------------------------
 # INSCRIÇÕES E PARTICIPAÇÃO
 # -----------------------------------------------------------
 
@@ -458,6 +477,8 @@ class EventSubscription(models.Model):
     class Meta:
         verbose_name = _("Inscrição")
         verbose_name_plural = _("Inscrições")
+        # Impede inscrições duplicadas do mesmo usuário no mesmo evento
+        unique_together = ("event", "user")
 
     def __str__(self):
         return f"{self.user.username} - {self.event.title}"
