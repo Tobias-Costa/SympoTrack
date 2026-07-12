@@ -7,4 +7,5 @@ urlpatterns = [
     path("register/event/language", views.register_language, name="register_language"),
     path("register/event/stage", views.register_stage_type, name="register_stage_type"),
     path("manage/groups", views.management_groups, name="management_groups"),
+    path("detail/event/<int:event_id>", views.event_detail, name="event_detail"),
 ]

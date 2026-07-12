@@ -1,0 +1,875 @@
+{% extends 'allauth/layouts/base.html' %}
+
+{% load static %}
+
+<!-- ========================================================= -->
+<!-- TÍTULO -->
+<!-- ========================================================= -->
+{% block title %}
+{{ event.title }}
+{% endblock %}
+
+<!-- ========================================================= -->
+<!-- CONTEÚDO -->
+<!-- ========================================================= -->
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- ===================================================== -->
+    <!-- CABEÇALHO -->
+    <!-- ===================================================== -->
+
+    <div class="card global-card border-0 shadow-sm overflow-hidden mb-5">
+
+        <div class="card-body p-4 p-lg-5">
+
+            <div class="row align-items-center">
+
+                <div class="col-lg-8">
+
+                    <!-- Categoria -->
+                    {% if event.subject %}
+
+                    <span class="badge bg-primary mb-3">
+
+                        {{ event.subject }}
+
+                    </span>
+
+                    {% endif %}
+
+                    <!-- Nome -->
+
+                    <h1 class="fw-bold mb-3">
+
+                        {{ event.title }}
+
+                    </h1>
+
+                    <!-- Descrição resumida -->
+
+                    <p class="text-muted mb-4">
+
+                        {{ event.description|truncatewords:35 }}
+
+                    </p>
+
+                    <!-- Informações rápidas -->
+
+                    <div class="d-flex flex-wrap gap-4">
+
+
+                        <div>
+
+                            <i class="bi bi-translate text-success me-2"></i>
+
+                            {{ event.language }}
+
+                        </div>
+
+                        <div>
+
+                            <i class="bi bi-globe me-2"></i>
+
+                            {% if event.is_public %}
+                                Evento Público
+                            {% else %}
+                                Evento Privado
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- BOTÕES -->
+                <!-- ========================================= -->
+
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+
+                    {% if can_edit %}
+
+                    <a href="% url 'edit_event' event.id %"
+                       class="btn btn-outline-primary mb-2 w-100">
+
+                        <i class="bi bi-pencil-square me-2"></i>
+
+                        Editar Evento
+
+                    </a>
+
+                    {% endif %}
+
+                    <a href="% url 'subscribe_event' event.id %"
+                       class="btn btn-primary w-100">
+
+                        <i class="bi bi-person-plus me-2"></i>
+
+                        Inscrever-se
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- RESUMO DO EVENTO -->
+    <!-- ===================================================== -->
+
+    <div class="row g-4 mb-5">
+
+        <!-- Data -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card h-100 shadow-sm border-0">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-calendar3 text-primary fs-1"></i>
+
+                    <h5 class="mt-3">
+
+                        Datas
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        {{ event.min_start_date|date:"d/m/Y H:i" }}
+
+                        <br>
+
+                        até
+
+                        <br>
+
+                        {{ event.max_end_date|date:"d/m/Y H:i" }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Local -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card h-100 shadow-sm border-0">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-geo-alt-fill text-danger fs-1"></i>
+
+                    <h5 class="mt-3">
+
+                        Local
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        {{ event.address.place_name }}
+
+                        <br>
+                        {% if event.address.number %}
+                            {{ event.address.street }},
+                            {{ event.address.number }}
+                        {% else %}
+                            {{ event.address.street }}
+                        {% endif %}
+
+                        <br>
+                        
+                        {{ event.address.city.name }} - {{ event.address.city.state.uf }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Inscritos -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card h-100 shadow-sm border-0">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-people-fill text-success fs-1"></i>
+
+                    <h5 class="mt-3">
+
+                        Inscritos
+
+                    </h5>
+
+                    <h2 class="fw-bold">
+
+                        {{ event.subscriptions.count }}
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Etapas -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card h-100 shadow-sm border-0">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-list-check text-warning fs-1"></i>
+
+                    <h5 class="mt-3">
+
+                        Etapas
+
+                    </h5>
+
+                    <h2 class="fw-bold">
+
+                        {{ event.stages.count }}
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- DESCRIÇÃO -->
+    <!-- ===================================================== -->
+    {% if event.description %}
+    <div class="card global-card border-0 shadow-sm mb-5">
+
+        <div class="card-body p-5">
+
+            <h3 class="fw-bold mb-4">
+
+                Sobre o Evento
+
+            </h3>
+
+            <p class="text-muted mb-0"
+               style="text-align:justify;">
+
+                {{ event.description|linebreaks }}
+
+            </p>
+
+        </div>
+
+    </div>
+    {% endif %}
+
+   
+    <!-- ===================================================== -->
+    <!-- ETAPAS DO EVENTO -->
+    <!-- ===================================================== -->
+
+    <div class="card global-card border-0 shadow-sm mb-5">
+
+        <div class="card-body p-5">
+
+            <div class="d-flex align-items-center mb-4">
+
+                <i class="bi bi-list-check fs-3 text-primary me-3"></i>
+
+                <h3 class="fw-bold mb-0">
+
+                    Cronograma do Evento
+
+                </h3>
+
+            </div>
+
+            {% if event.stages.all %}
+
+                {% for stage in event.stages.all %}
+
+                <div class="border-start border-4 border-primary ps-4 pb-4 mb-4">
+
+                    <div class="flex-wrap">
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+
+                                {{ stage.stage_type }}
+
+                            </h5>
+
+                        </div>
+
+                        <div class="text-md">
+
+                            <span class="badge bg-primary">
+
+                                {{ stage.start_date|date:"d/m/Y H:i" }}
+
+                            </span>
+
+                            <br>
+
+                            <small class="text-muted">
+
+                                até
+
+                            </small>
+
+                            <br>
+
+                            <span class="badge bg-secondary">
+
+                                {{ stage.end_date|date:"d/m/Y H:i" }}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="alert alert-light border">
+
+                    Nenhuma etapa cadastrada.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- PREÇOS -->
+    <!-- ===================================================== -->
+
+    <div class="card global-card border-0 shadow-sm mb-5">
+
+        <div class="card-body p-5">
+
+            <div class="d-flex align-items-center mb-4">
+
+                <i class="bi bi-cash-stack fs-3 text-success me-3"></i>
+
+                <h3 class="fw-bold mb-0">
+
+                    Valores de Inscrição
+
+                </h3>
+
+            </div>
+
+            {% if event.prices.all %}
+
+            <div class="table-responsive">
+
+                <table class="table align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Categoria</th>
+
+                            <th>Lote</th>
+
+                            <th>Valor</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for price in event.prices.all %}
+
+                        <tr>
+
+                            <td>
+
+                                {{ price.category }}
+
+                            </td>
+
+                            <td>
+
+                                {{ price.batch }}
+
+                            </td>
+
+                            <td class="fw-bold text-success">
+
+                                R$ {{ price.price }}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+                <div class="alert alert-light border">
+
+                    Este evento não possui valores cadastrados.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- LOCALIZAÇÃO -->
+    <!-- ===================================================== -->
+
+    <div class="card global-card border-0 shadow-sm mb-5">
+
+        <div class="card-body p-5">
+
+            <div class="d-flex align-items-center mb-4">
+
+                <i class="bi bi-geo-alt-fill fs-3 text-danger me-3"></i>
+
+                <h3 class="fw-bold mb-0">
+
+                    Localização
+
+                </h3>
+
+            </div>
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Local
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.address.place_name }}
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Endereço
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.address.street }},
+
+                        {{ event.address.number|default:'N/I' }}
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Bairro
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.address.neighborhood|default:'N/I' }}
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        CEP
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.address.cep|default:'N/I' }}
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Cidade
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.address.city.name }}
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Estado
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.address.city.state.name }}
+
+                        ({{ event.address.city.state.uf }})
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        País
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.address.city.state.country.name }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- CATEGORIAS -->
+    <!-- ===================================================== -->
+
+    <div class="card global-card border-0 shadow-sm mb-5">
+
+        <div class="card-body p-5">
+
+            <div class="d-flex align-items-center mb-4">
+
+                <i class="bi bi-tags-fill fs-3 text-primary me-3"></i>
+
+                <h3 class="fw-bold mb-0">
+
+                    Categorias
+
+                </h3>
+
+            </div>
+
+            {% if event.categories.all %}
+
+                <div class="d-flex flex-wrap gap-2">
+
+                    {% for category in event.categories.all %}
+
+                        <span class="badge bg-primary fs-6 px-3 py-2">
+
+                            {{ category }}
+
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <p class="text-muted mb-0">
+
+                    Nenhuma categoria cadastrada.
+
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- ORGANIZAÇÃO -->
+    <!-- ===================================================== -->
+
+    <div class="card global-card border-0 shadow-sm mb-5">
+
+        <div class="card-body p-5">
+
+            <div class="d-flex align-items-center mb-4">
+
+                <i class="bi bi-building fs-3 text-success me-3"></i>
+
+                <h3 class="fw-bold mb-0">
+
+                    Organização
+
+                </h3>
+
+            </div>
+
+            <div class="row g-4">
+                {% if event.group %}
+                <div class="col-md-6">
+                    
+                    <h5 class="fw-semibold">
+
+                        Grupo Responsável
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        {{ event.group.name }}
+
+                    </p>
+
+                </div>
+                {% endif %}
+
+                <div class="col-md-6">
+
+                    <h5 class="fw-semibold">
+
+                        Criador do SympTrack
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        {{ event.creator.get_full_name|default:event.creator.username }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- INFORMAÇÕES ADICIONAIS -->
+    <!-- ===================================================== -->
+
+    <div class="card global-card border-0 shadow-sm mb-5">
+
+        <div class="card-body p-5">
+
+            <div class="d-flex align-items-center mb-4">
+
+                <i class="bi bi-info-circle-fill fs-3 text-info me-3"></i>
+
+                <h3 class="fw-bold mb-0">
+
+                    Informações Adicionais
+
+                </h3>
+
+            </div>
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Idioma
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.language }}
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Link Externo
+
+                    </strong>
+
+                    {% if event.external_link %}
+
+                        <p>
+
+                            <a href="{{ event.external_link }}"
+                               target="_blank">
+
+                                {{ event.external_link }}
+
+                            </a>
+
+                        </p>
+
+                    {% else %}
+
+                        <p class="text-muted">
+
+                            Não informado.
+
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Criado em
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.created_at|date:"d/m/Y H:i" }}
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <strong>
+
+                        Última atualização
+
+                    </strong>
+
+                    <p class="text-muted">
+
+                        {{ event.updated_at|date:"d/m/Y H:i" }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- BOTÕES -->
+    <!-- ===================================================== -->
+
+    <div class="d-grid d-md-flex justify-content-md-end gap-3 mb-5">
+
+        <a href="{{ request.session.event_back_url|default:'/' }}"
+           class="btn btn-outline-secondary px-4">
+
+            <i class="bi bi-arrow-left me-2"></i>
+
+            Voltar
+
+        </a>
+
+        {% if can_edit %}
+
+        <a href="% url 'edit_event' event.id %"
+           class="btn btn-outline-primary px-4">
+
+            <i class="bi bi-pencil-square me-2"></i>
+
+            Editar Evento
+
+        </a>
+
+        {% endif %}
+
+        <a href="% url 'subscribe_event' event.id %"
+           class="btn btn-primary px-4">
+
+            <i class="bi bi-person-plus-fill me-2"></i>
+
+            Inscrever-se
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

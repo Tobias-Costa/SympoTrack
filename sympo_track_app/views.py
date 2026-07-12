@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import DatabaseError, transaction
+from django.db.models import Min, Max
 from .models import (
     Language,
     State,
@@ -22,7 +23,8 @@ import json
 
 @login_required
 def home(request):
-    return render(request, "home.html")
+    events = Event.objects.filter(is_public=True).all()
+    return render(request, "home.html", {"events":events})
 
 
 @login_required
@@ -107,7 +109,11 @@ def register_event(request):
 
         city_name = request.POST.get("city_name")
 
-        if not city_name:
+        place_name = request.POST.get("place_name")
+
+        street_name = request.POST.get("street")
+
+        if not ( place_name and street_name and city_name ):
             messages.error(request, "Selecione um endereço válido no mapa.")
             return render(request, "register_event.html", context)
 
@@ -133,8 +139,8 @@ def register_event(request):
 
                 # ENDEREÇOS
                 address, _ = EventAddress.objects.get_or_create(
-                    place_name=request.POST.get("place_name"),
-                    street=request.POST.get("street"),
+                    place_name=place_name,
+                    street=street_name,
                     city=city,
                     defaults={
                         "number": request.POST.get("number") or None,
@@ -232,6 +238,67 @@ def management_groups(request):
     user_groups = ManagementGroup.objects.filter(members=request.user)
     context = {"management_groups": user_groups}
     return render(request, "management_groups.html", context=context)
+
+@login_required
+def event_detail(request, event_id):
+    event = get_object_or_404(
+        Event.objects.select_related(
+            "address__city__state__country",
+            "language",
+            "creator",
+            "group",
+        ).prefetch_related(
+            "categories__area",
+            "stages__stage_type",
+            "prices",
+            "subscriptions",
+        ).annotate(
+        min_start_date=Min("stages__start_date"),
+        max_end_date=Max("stages__end_date")
+    ),
+        id=event_id
+    )
+
+    # PROTEÇÃO — evento privado só pode ser visto por:
+    # 1. O criador
+    # 2. Membros do grupo organizador
+    # 3. Inscritos no evento
+    if not event.is_public:
+        is_creator = (event.creator == request.user)
+
+        is_group_member = event.group and ManagementGroupMember.objects.filter(
+            group=event.group,
+            user=request.user,
+        ).exists()
+
+        is_subscribed = event.subscriptions.filter(
+            user=request.user
+        ).exists()
+
+        if not (is_creator or is_group_member or is_subscribed):
+            messages.error(request, "Este evento é privado.")
+            return redirect("home")
+
+    # SALVA URL DE ORIGEM
+    # Se existir '?next=' na URL (ou seja, veio da Home ou Grupos), salva na sessão
+    if 'next' in request.GET:
+        request.session['event_back_url'] = request.GET['next']
+
+    # VERIFICA SE O USUÁRIO PODE EDITAR
+    can_edit = False
+    if event.creator == request.user:
+        can_edit = True
+    elif event.group:
+        can_edit = ManagementGroupMember.objects.filter(
+            group=event.group,
+            user=request.user,
+            role__in=["OWNER", "ADMIN", "MANAGER", "EDITOR"]
+        ).exists()
+
+    return render(request, "event_detail.html", {
+        "event": event,
+        "can_edit": can_edit,
+    })
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 @login_required
