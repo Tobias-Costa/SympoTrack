@@ -232,6 +232,231 @@ def register_event(request):
 
     return render(request, "register_event.html", context)
 
+@login_required
+def edit_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    # PROTEÇÃO — apenas o criador ou membros com permissão podem editar
+    is_creator = event.creator == request.user
+    is_editor  = event.group and ManagementGroupMember.objects.filter(
+        group=event.group,
+        user=request.user,
+        role__in=["OWNER", "ADMIN", "MANAGER", "EDITOR"]
+    ).exists()
+
+    if not (is_creator or is_editor):
+        messages.error(request, "Você não tem permissão para editar este evento.")
+        return redirect("event_detail", event_id=event.id)
+
+    # DADOS PARA O FORMULÁRIO
+    languages         = Language.objects.all().order_by("language")
+    categories        = EventCategories.objects.all().order_by("name")
+    event_stage_types = EventStagesType.objects.all().order_by("name")
+    areas             = EventCategoriesArea.objects.prefetch_related("categories").order_by("college", "name")
+    user_groups       = ManagementGroup.objects.filter(members=request.user)
+
+    # DADOS EXISTENTES DO EVENTO PARA REPOPULAR O FORMULÁRIO
+    existing_stages = list(event.stages.values_list(
+        "stage_type_id", "start_date", "end_date"
+    ))
+    existing_prices = list(event.prices.values_list(
+        "category", "batch", "price"
+    ))
+
+    context = {
+        "event":                    event,
+        "languages":                languages,
+        "groups":                   user_groups,
+        "category_options":         categories,
+        "geoapify_key":             settings.GEOAPIFY_API_KEY,
+        "areas":                    areas,
+        "college_choices":          EventCategoriesArea.College.choices,
+        "event_stage_type_options": event_stage_types,
+
+        # REPOPULA COM DADOS EXISTENTES
+        "title":              event.title,
+        "description":        event.description,
+        "subject":            event.subject,
+        "external_link":      event.external_link,
+        "is_public":          event.is_public,
+        "selected_language":  event.language_id,
+        "selected_group":     event.group_id,
+
+        # ENDEREÇO EXISTENTE
+        "address_formatted":  f"{event.address.street}, {event.address.number or ''} - {event.address.city.name}",
+        "place_name":         event.address.place_name,
+        "street":             event.address.street,
+        "number":             event.address.number or "",
+        "neighborhood":       event.address.neighborhood or "",
+        "cep":                event.address.cep or "",
+        "city_name":          event.address.city.name,
+        "state_name":         event.address.city.state.name,
+        "state_uf":           event.address.city.state.uf,
+        "country_name":       event.address.city.state.country.name,
+        "country_abbr":       event.address.city.state.country.abbr,
+
+        # CATEGORIAS, ETAPAS E PREÇOS EXISTENTES
+        "selected_categories": json.dumps(
+            list(event.categories.values_list("id", flat=True))
+        ),
+        "stages_data": json.dumps([
+            [str(s[0]), s[1].strftime("%Y-%m-%dT%H:%M"), s[2].strftime("%Y-%m-%dT%H:%M")]
+            for s in existing_stages
+        ]),
+        "prices_data": json.dumps([
+            [p[0], p[1], str(p[2])]
+            for p in existing_prices
+        ]),
+    }
+
+    if request.method == "POST":
+        context.update({
+            "title":             request.POST.get("title", ""),
+            "description":       request.POST.get("description", ""),
+            "subject":           request.POST.get("subject", ""),
+            "external_link":     request.POST.get("external_link", ""),
+            "is_public":         "is_public" in request.POST,
+            "selected_language": request.POST.get("language"),
+            "selected_group":    request.POST.get("group"),
+
+            "address_formatted": request.POST.get("address_formatted", ""),
+            "place_name":        request.POST.get("place_name", ""),
+            "street":            request.POST.get("street", ""),
+            "number":            request.POST.get("number", ""),
+            "neighborhood":      request.POST.get("neighborhood", ""),
+            "cep":               request.POST.get("cep", ""),
+            "city_name":         request.POST.get("city_name", ""),
+            "state_name":        request.POST.get("state_name", ""),
+            "state_uf":          request.POST.get("state_uf", ""),
+            "country_name":      request.POST.get("country_name", ""),
+            "country_abbr":      request.POST.get("country_abbr", ""),
+
+            "selected_categories": json.dumps(request.POST.getlist("categories")),
+            "stages_data": json.dumps([
+                list(item) for item in zip(
+                    request.POST.getlist("stage_type[]"),
+                    request.POST.getlist("stage_start_date[]"),
+                    request.POST.getlist("stage_end_date[]"),
+                )
+            ]),
+            "prices_data": json.dumps([
+                list(item) for item in zip(
+                    request.POST.getlist("price_category[]"),
+                    request.POST.getlist("batch[]"),
+                    request.POST.getlist("price[]"),
+                )
+            ]),
+        })
+
+        country_name = request.POST.get("country_name")
+        country_abbr = request.POST.get("country_abbr")
+        state_name   = request.POST.get("state_name")
+        state_uf     = request.POST.get("state_uf")
+        city_name    = request.POST.get("city_name")
+        place_name   = request.POST.get("place_name")
+        street_name  = request.POST.get("street")
+
+        if not (place_name and street_name and city_name):
+            messages.error(request, "Selecione um endereço válido no mapa.")
+            return render(request, "edit_event.html", context)
+
+        try:
+            with transaction.atomic():
+
+                # PAÍS
+                country, _ = Country.objects.get_or_create(
+                    name=country_name or "(Não informado)",
+                    defaults={"abbr": country_abbr.upper() if country_abbr else "N/I"},
+                )
+
+                # ESTADO
+                state, _ = State.objects.get_or_create(
+                    name=state_name or "(Não informado)",
+                    country=country,
+                    defaults={"uf": state_uf.upper() if state_uf else "N/I"},
+                )
+
+                # CIDADE
+                city, _ = City.objects.get_or_create(name=city_name, state=state)
+
+                # ENDEREÇO — atualiza o existente pelo ID
+                address = event.address
+                address.place_name   = place_name
+                address.street       = street_name
+                address.number       = request.POST.get("number") or None
+                address.complement   = request.POST.get("complement") or None
+                address.neighborhood = request.POST.get("neighborhood") or None
+                address.cep          = request.POST.get("cep") or None
+                address.city         = city
+                address.save()
+
+                # IDIOMA
+                language = Language.objects.filter(
+                    language=request.POST.get("language")
+                ).first()
+
+                if not language:
+                    messages.error(request, "Selecione um idioma válido.")
+                    return render(request, "edit_event.html", context)
+
+                # GRUPO
+                group_id = request.POST.get("group")
+                group    = ManagementGroup.objects.filter(id=group_id).first() if group_id else None
+
+                # EVENTO — atualiza os campos
+                event.title         = request.POST.get("title")
+                event.description   = request.POST.get("description")
+                event.subject       = request.POST.get("subject")
+                event.external_link = request.POST.get("external_link") or ""
+                event.is_public     = "is_public" in request.POST
+                event.language      = language
+                event.group         = group
+                event.save()
+
+                # CATEGORIAS — substitui todas
+                category_ids = request.POST.getlist("categories")
+                event.categories.set(
+                    EventCategories.objects.filter(id__in=category_ids)
+                )
+
+                # ETAPAS — apaga e recria
+                event.stages.all().delete()
+                for stage_type_id, start_date, end_date in zip(
+                    request.POST.getlist("stage_type[]"),
+                    request.POST.getlist("stage_start_date[]"),
+                    request.POST.getlist("stage_end_date[]"),
+                ):
+                    if not (stage_type_id and start_date and end_date):
+                        continue
+                    stage_type = EventStagesType.objects.filter(id=stage_type_id).first()
+                    if not stage_type:
+                        continue
+                    EventStage.objects.create(
+                        event=event, stage_type=stage_type,
+                        start_date=start_date, end_date=end_date,
+                    )
+
+                # PREÇOS — apaga e recria
+                event.prices.all().delete()
+                for category, batch, price in zip(
+                    request.POST.getlist("price_category[]"),
+                    request.POST.getlist("batch[]"),
+                    request.POST.getlist("price[]"),
+                ):
+                    if not (category and price):
+                        continue
+                    EventPricing.objects.create(
+                        event=event, category=category,
+                        batch=batch or "Lote 1", price=price,
+                    )
+
+            messages.success(request, "Evento atualizado com sucesso.")
+            return redirect("event_detail", event_id=event.id)
+
+        except Exception as e:
+            messages.error(request, f"Erro ao atualizar evento: {str(e)}")
+
+    return render(request, "edit_event.html", context)
 
 @login_required
 def management_groups(request):
