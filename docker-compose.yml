@@ -11,13 +11,27 @@ services:
       - pg_data:/var/lib/postgresql/data
     env_file:
       - .env
+  
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   django-web:
     build: .
+    command: >
+      sh -c "echo '🛠️ Criando e aplicando migrações...' &&
+            python manage.py makemigrations &&
+            python manage.py migrate &&
+            echo '🚀 Iniciando o Servidor Web...' &&
+            python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     depends_on:
       - db
+      - redis
     volumes:
       - .:/app
     environment:
@@ -28,7 +42,52 @@ services:
       DATABASE_USERNAME: ${DB_USER}
       DATABASE_PASSWORD: ${DB_PASSWORD}
       DATABASE_HOST: ${DB_HOST}
+      REDIS_URL: ${REDIS_URL}
     env_file:
       - .env
+    
+  celery-worker:
+    build: .
+    command: >
+      sh -c "echo '👷 Iniciando o Processador de Tarefas (Celery Worker)...' &&
+            celery -A sympo_core worker --loglevel=info"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+    environment:
+      SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      DATABASE_NAME: ${DB_NAME}
+      DATABASE_USERNAME: ${DB_USER}
+      DATABASE_PASSWORD: ${DB_PASSWORD}
+      DATABASE_HOST: ${DB_HOST}
+      REDIS_URL: ${REDIS_URL}
+    env_file:
+      - .env
+  
+  celery-beat:
+    build: .
+    command: >
+      sh -c "echo '⏰ Iniciando o Agendador de Tarefas (Celery Beat)...' &&
+            celery -A sympo_core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+    environment:
+      SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      DATABASE_NAME: ${DB_NAME}
+      DATABASE_USERNAME: ${DB_USER}
+      DATABASE_PASSWORD: ${DB_PASSWORD}
+      DATABASE_HOST: ${DB_HOST}
+      REDIS_URL: ${REDIS_URL}
+    env_file:
+      - .env
+
 volumes:
   pg_data:
+  redis_data:

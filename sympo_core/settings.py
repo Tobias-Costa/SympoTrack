@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     "sympo_track_app",
     "allauth",
     "allauth.account",
+    "django_celery_beat",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -169,3 +171,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# CELERY
+CELERY_BROKER_URL       = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND   = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+CELERY_TIMEZONE         = "America/Fortaleza"
+CELERY_BEAT_SCHEDULER   = "django_celery_beat.schedulers:DatabaseScheduler"
