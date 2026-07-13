@@ -15,17 +15,49 @@ from .models import (
     EventPricing,
     EventStage,
     EventStagesType,
+    EventSubscription,
+    UserStageRequirement,
     ManagementGroup,
     ManagementGroupMember,
     )
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+from .tasks import (
+    notify_subscription,
+    notify_stage_starting,
+    notify_stage_ending_soon,
+    notify_stage_expired,
+    notify_unsubscribe,
+)
+from django.core.paginator import Paginator
 import json
 
 @login_required
 def home(request):
-    events = Event.objects.filter(is_public=True).all()
-    return render(request, "home.html", {"events":events})
+    # Busca todos os eventos públicos pré-carregando as inscrições
+    events = Event.objects.filter(is_public=True).prefetch_related('subscriptions').order_by("-id")
 
+    # Paginação (12 eventos por página)
+    paginator = Paginator(events, 12)
+
+    page_number = request.GET.get("page")
+
+    events = paginator.get_page(page_number)
+
+    #Criação do ooleano 'is_subscribed' para cada evento da lista
+    for event in events:
+        # Verifica se o id do usuário logado está na lista de inscrições ativas daquele evento
+        event.is_subscribed = event.subscriptions.filter(
+            user=request.user, 
+            status="INSCRITO",
+        ).exists()
+
+        event.subscribed_count = event.subscriptions.filter(
+            status="INSCRITO"
+        ).count()
+
+    return render(request, "home.html", {"events":events})
 
 @login_required
 def register_event(request):
@@ -520,10 +552,148 @@ def event_detail(request, event_id):
             role__in=["OWNER", "ADMIN", "MANAGER", "EDITOR"]
         ).exists()
 
+    is_subscribed = event.subscriptions.filter(
+        user=request.user,
+        status="INSCRITO",
+    ).exists()
+
+    event.subscribed_count = event.subscriptions.filter(
+        status="INSCRITO"
+    ).count()
+
     return render(request, "event_detail.html", {
         "event": event,
         "can_edit": can_edit,
+        "is_subscribed": is_subscribed,
     })
+
+@login_required
+def subscribe_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    now   = timezone.now()
+
+    # PROTEÇÃO — evento privado
+    if not event.is_public:
+        is_creator      = event.creator == request.user
+        is_group_member = event.group and ManagementGroupMember.objects.filter(
+            group=event.group,
+            user=request.user,
+        ).exists()
+
+        if not (is_creator or is_group_member):
+            messages.error(request, "Este evento é privado.")
+            return redirect(request.META.get("HTTP_REFERER", "home"))
+
+    try:
+        with transaction.atomic():
+
+            # VERIFICA SE JÁ EXISTE UMA INSCRIÇÃO
+            subscription = EventSubscription.objects.filter(
+                event=event,
+                user=request.user
+            ).first()
+
+            if subscription:
+                # JÁ INSCRITO OU CONFIRMADO — não faz nada
+                if subscription.status == "INSCRITO":
+                    messages.warning(request, "Você já está inscrito neste evento.")
+                    return redirect(request.META.get("HTTP_REFERER", "home"))
+
+                # CANCELADO OU EXPIRADO — reativa a inscrição
+                subscription.status = "INSCRITO"
+                subscription.save()
+
+                # REMOVE REQUISITOS ANTIGOS PARA RECRIAR
+                subscription.requirements.all().delete()
+
+            else:
+                # CRIA NOVA INSCRIÇÃO
+                subscription = EventSubscription.objects.create(
+                    event=event,
+                    user=request.user,
+                    status="INSCRITO",
+                )
+
+            # CRIA REQUISITOS E AGENDA NOTIFICAÇÕES PARA CADA ETAPA
+            for stage in event.stages.all():
+
+                # SE A ETAPA JÁ ACABOU — cria o requisito mas não agenda nada
+                if stage.end_date <= now:
+                    UserStageRequirement.objects.create(
+                        event_stage=stage,
+                        subscription=subscription,
+                        is_completed=False,
+                    )
+                    continue
+
+                # SE A ETAPA JÁ ESTÁ EM ANDAMENTO — cria o requisito mas não agenda início
+                requirement = UserStageRequirement.objects.create(
+                    event_stage=stage,
+                    subscription=subscription,
+                    is_completed=False,
+                )
+
+                # AGENDA INÍCIO — só se ainda não começou
+                if stage.start_date > now:
+                    notify_stage_starting.apply_async(
+                        args=[requirement.id],
+                        eta=stage.start_date,
+                    )
+
+                # AGENDA AVISO 24H ANTES DO FIM — só se ainda está no futuro
+                warning_time = stage.end_date - timedelta(hours=24)
+                if warning_time > now:
+                    notify_stage_ending_soon.apply_async(
+                        args=[requirement.id],
+                        eta=warning_time,
+                    )
+
+                # AGENDA EXPIRAÇÃO — sempre que o fim ainda está no futuro
+                notify_stage_expired.apply_async(
+                    args=[requirement.id],
+                    eta=stage.end_date,
+                )
+
+        # EMAIL DE CONFIRMAÇÃO
+        notify_subscription.delay(subscription.id)
+
+        messages.success(request, f"Inscrição realizada com sucesso em {event.title}.")
+
+    except Exception as e:
+        messages.error(request, f"Erro ao realizar inscrição: {str(e)}")
+
+    return redirect(request.META.get("HTTP_REFERER", "home"))
+
+@login_required
+def unsubscribe_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    subscription = get_object_or_404(
+        EventSubscription,
+        event=event,
+        user=request.user
+    )
+
+    # PROTEÇÃO — só cancela se estiver inscrito ou confirmado
+    if subscription.status not in ["INSCRITO", "CONFIRMADO", "PENDENTE"]:
+        messages.warning(request, "Sua inscrição já está cancelada ou expirada.")
+        return redirect(request.META.get("HTTP_REFERER", "home"))
+
+    try:
+        with transaction.atomic():
+
+            # ATUALIZA STATUS PARA CANCELADO
+            subscription.status = "CANCELADO"
+            subscription.save()
+
+        # ENVIA EMAIL DE DESINSCRIÇÃO
+        notify_unsubscribe.delay(subscription.id)
+
+        messages.success(request, f"Desinscrição do evento {event.title} realizada com sucesso.")
+
+    except Exception:
+        messages.error(request, f"Erro ao cancelar inscrição")
+
+    return redirect(request.META.get("HTTP_REFERER", "home"))
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 @login_required

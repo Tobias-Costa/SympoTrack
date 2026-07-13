@@ -7,6 +7,24 @@ Home | SympoTrack
 {% endblock %}
 
 {% block content %}
+<div id="loading"
+     class="position-fixed top-0 start-0 w-100 vh-100 bg-white d-flex justify-content-center align-items-center"
+     style="z-index:9999">
+
+    <div class="text-center">
+
+        <div class="spinner-border text-primary"
+             style="width:4rem;height:4rem"
+             role="status">
+        </div>
+
+        <h5 class="mt-3">
+            Carregando...
+        </h5>
+
+    </div>
+
+</div>
 
 <div class="container-fluid py-4">
 
@@ -60,81 +78,141 @@ Home | SympoTrack
 
     {% else %}
 
-    <div class="event-scroll pb-3">
+    <div class="row g-4">
         {% for event in events %}
-        <div class="event-card card border-0 shadow-sm rounded-4">
-            <div class="card-body d-flex flex-column">
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="event-card card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body d-flex flex-column">
 
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
-                        {{ event.subject }}
-                    </span>
-                </div>
-
-                <h4 class="fw-bold mb-2">{{ event.title }}</h4>
-
-                <p class="text-muted flex-grow-1">
-                    {{ event.description|truncatewords:5 }}
-                </p>
-
-                <div class="mt-3">
-                    <div class="d-flex align-items-center mb-2 text-secondary">
-                        <i class="bi bi-translate me-2"></i>
-                        {{ event.language }}
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
+                            {{ event.subject }}
+                        </span>
                     </div>
-                    <div class="d-flex align-items-center mb-2 text-secondary">
-                        <i class="bi bi-geo-alt me-2"></i>
-                        {{ event.address.city.name }} - {{ event.address.city.state.uf }}
-                    </div>
-                    <div class="d-flex align-items-center text-secondary">
-                        <i class="bi bi-people me-2"></i>
-                        {{ event.subscriptions.count }} inscritos
-                    </div>
-                </div>
 
-                <div class="d-flex gap-2 mt-4">
-                    <a href="{% url 'event_detail' event.id %}?next={{ request.path }}"
-                       class="btn btn-outline-primary rounded-3 flex-grow-1">
-                        Ver Detalhes
-                    </a>
-                    <a href="% url 'subscribe_event' event.id %"
-                       class="btn btn-primary rounded-3">
-                        <i class="bi bi-person-plus"></i>
-                    </a>
-                </div>
+                    <h4 class="fw-bold mb-2">{{ event.title }}</h4>
 
+                    <p class="text-muted flex-grow-1">
+                        {{ event.description|truncatewords:5 }}
+                    </p>
+
+                    <div class="mt-3">
+                        <div class="d-flex align-items-center mb-2 text-secondary">
+                            <i class="bi bi-translate me-2"></i>
+                            {{ event.language }}
+                        </div>
+                        <div class="d-flex align-items-center mb-2 text-secondary">
+                            <i class="bi bi-geo-alt me-2"></i>
+                            {{ event.address.city.name }} - {{ event.address.city.state.uf }}
+                        </div>
+                        <div class="d-flex align-items-center text-secondary">
+                            <i class="bi bi-people me-2"></i>
+                            {{ event.subscribed_count }} inscritos
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <a href="{% url 'event_detail' event.id %}?next={{ request.path }}"
+                        class="btn btn-outline-primary rounded-3 flex-grow-1">
+                            Ver Detalhes
+                        </a>
+                        {% if event.is_subscribed %}
+                            <!-- Botão Vermelho para Cancelar Inscrição -->
+                            <a href="{% url 'unsubscribe_event' event.id %}" class="btn btn-danger rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                        {% else %}
+                            <!-- Botão Azul para se Inscrever -->
+                            <a href="{% url 'subscribe_event' event.id %}" class="btn btn-primary rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                <i class="bi bi-plus-circle"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
+    {% if events.has_other_pages %}
+        <nav class="mt-5">
 
+            <ul class="pagination justify-content-center">
+
+                {% if events.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ events.previous_page_number }}">
+                        Anterior
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page in events.paginator.page_range %}
+
+                    <li class="page-item {% if page == events.number %}active{% endif %}">
+
+                        <a class="page-link" href="?page={{ page }}">
+                            {{ page }}
+                        </a>
+
+                    </li>
+
+                {% endfor %}
+
+                {% if events.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ events.next_page_number }}">
+                        Próxima
+                    </a>
+                </li>
+                {% endif %}
+
+            </ul>
+
+        </nav>
+
+        {% endif %}
     {% endif %}
 
 </div>
 
 
 <style>
-.event-scroll {
-    display: flex;
-    gap: 1.5rem;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding-bottom: 10px;
+.event-card{
+    transition:.3s ease;
 }
-.event-scroll::-webkit-scrollbar { height: 10px; }
-.event-scroll::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 20px;
-}
-.event-card {
-    min-width: 340px;
-    max-width: 340px;
-    transition: 0.3s ease;
-}
-.event-card:hover { transform: translateY(-5px); }
-@media (max-width: 768px) {
-    .event-card { min-width: 280px; max-width: 280px; }
+
+.event-card:hover{
+    transform:translateY(-5px);
 }
 </style>
+
+<script>
+
+window.addEventListener("load", function(){
+
+    document
+        .getElementById("loading")
+        .classList.add("d-none");
+
+});
+
+document.querySelectorAll("a").forEach(function(link){
+
+    link.addEventListener("click", function(){
+
+        if(link.href){
+
+            document
+                .getElementById("loading")
+                .classList.remove("d-none");
+
+        }
+
+    });
+
+});
+
+</script>
 
 {% endblock %}

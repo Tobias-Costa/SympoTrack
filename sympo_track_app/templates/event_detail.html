@@ -92,7 +92,7 @@
 
                     {% if can_edit %}
 
-                    <a href="% url 'edit_event' event.id %"
+                    <a href="{% url 'edit_event' event.id %}"
                        class="btn btn-outline-primary mb-2 w-100">
 
                         <i class="bi bi-pencil-square me-2"></i>
@@ -103,14 +103,19 @@
 
                     {% endif %}
 
-                    <a href="% url 'subscribe_event' event.id %"
-                       class="btn btn-primary w-100">
-
-                        <i class="bi bi-person-plus me-2"></i>
-
-                        Inscrever-se
-
-                    </a>
+                    {% if is_subscribed %}
+                        <!-- Botão Vermelho para Cancelar Inscrição -->
+                        <a href="{% url 'unsubscribe_event' event.id %}" class="btn btn-danger w-100">
+                            <i class="bi bi-x-circle me-2"></i>
+                            Cancelar inscrição
+                        </a>
+                    {% else %}
+                        <!-- Botão Azul para se Inscrever -->
+                        <a href="{% url 'subscribe_event' event.id %}" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Inscrever-se
+                        </a>
+                    {% endif %}
 
                 </div>
 
@@ -220,7 +225,7 @@
 
                     <h2 class="fw-bold">
 
-                        {{ event.subscriptions.count }}
+                        {{ event.subscribed_count }}
 
                     </h2>
 
@@ -701,7 +706,7 @@
 
                     <h5 class="fw-semibold">
 
-                        Criador do SympTrack
+                        Criador
 
                     </h5>
 
@@ -847,7 +852,7 @@
 
         {% if can_edit %}
 
-        <a href="% url 'edit_event' event.id %"
+        <a href="{% url 'edit_event' event.id %}"
            class="btn btn-outline-primary px-4">
 
             <i class="bi bi-pencil-square me-2"></i>
@@ -858,14 +863,17 @@
 
         {% endif %}
 
-        <a href="% url 'subscribe_event' event.id %"
-           class="btn btn-primary px-4">
-
-            <i class="bi bi-person-plus-fill me-2"></i>
-
-            Inscrever-se
-
-        </a>
+        {% if is_subscribed %}
+            <!-- Botão Vermelho para Cancelar Inscrição -->
+            <a href="{% url 'unsubscribe_event' event.id %}" class="btn btn-danger px-4">
+                <i class="bi bi-x-circle me-1"></i> Cancelar inscrição
+            </a>
+        {% else %}
+            <!-- Botão Azul para se Inscrever -->
+            <a href="{% url 'subscribe_event' event.id %}" class="btn btn-primary px-4">
+                <i class="bi bi-plus-circle me-1"></i> Inscrever-se
+            </a>
+        {% endif %}
 
     </div>
 
