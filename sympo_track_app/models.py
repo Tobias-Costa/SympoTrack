@@ -449,9 +449,8 @@ class EventSubscription(models.Model):
 
     STATUS_CHOICES = [
         ("INSCRITO", _("Inscrito")),
-        ("PENDENTE", _("Pendente")),
-        ("CONFIRMADO", _("Confirmado")),
         ("EXPIRADO", _("Expirado")),
+        ("CANCELADO", _("Cancelado")),
     ]
 
     event = models.ForeignKey(
@@ -493,7 +492,9 @@ class UserStageRequirement(models.Model):
     )
 
     subscription = models.ForeignKey(
-        EventSubscription, verbose_name=_("Inscrição"), on_delete=models.CASCADE
+        EventSubscription, verbose_name=_("Inscrição"),
+        on_delete=models.CASCADE,
+        related_name="requirements",
     )
 
     is_completed = models.BooleanField(_("Concluído"), default=False)
@@ -505,6 +506,9 @@ class UserStageRequirement(models.Model):
     class Meta:
         verbose_name = _("Requisito da etapa")
         verbose_name_plural = _("Requisitos das etapas")
+
+    def __str__(self):
+            return f"{self.event_stage.stage_type}({self.event_stage.event.title}) - {self.subscription.user}"
 
 
 class CancellationReason(models.Model):
@@ -529,15 +533,15 @@ class CancellationReason(models.Model):
 # -----------------------------------------------------------
 
 
-class NotificationsSubject(models.Model):
-    message_subject = models.CharField(_("Assunto"), max_length=255)
+# class NotificationsSubject(models.Model):
+#     message_subject = models.CharField(_("Assunto"), max_length=255)
 
-    class Meta:
-        verbose_name = _("Assunto da notificação")
-        verbose_name_plural = _("Assuntos das notificações")
+#     class Meta:
+#         verbose_name = _("Assunto da notificação")
+#         verbose_name_plural = _("Assuntos das notificações")
 
-    def __str__(self):
-        return self.message_subject
+#     def __str__(self):
+#         return self.message_subject
 
 
 class Notification(models.Model):
@@ -548,11 +552,9 @@ class Notification(models.Model):
         related_name="notifications",
     )
 
-    subject = models.ForeignKey(
-        NotificationsSubject, verbose_name=_("Assunto"), on_delete=models.CASCADE
-    )
+    subject = models.CharField(_("Assunto"), max_length=155)
 
-    title = models.CharField(_("Título"), max_length=255)
+    title = models.CharField(_("Título"), max_length=155)
 
     message = models.TextField(_("Mensagem"))
 

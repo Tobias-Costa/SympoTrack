@@ -20,7 +20,6 @@ from .models import (
     EventSubscription,
     UserStageRequirement,
     CancellationReason,
-    NotificationsSubject,
     Notification,
 )
 
@@ -108,5 +107,4 @@ admin.site.register(CancellationReason)
 # NOTIFICAÇÕES
 # ===========================================================
 
-admin.site.register(NotificationsSubject)
 admin.site.register(Notification)
