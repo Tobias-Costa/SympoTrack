@@ -268,6 +268,7 @@ def register_event(request):
 @login_required
 def edit_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    now   = timezone.now()
 
     # PROTEÇÃO — apenas o criador ou membros com permissão podem editar
     is_creator = event.creator == request.user
@@ -454,11 +455,7 @@ def edit_event(request, event_id):
 
                 # ETAPAS — apaga e recria
                 event.stages.all().delete()
-                for stage_type_id, start_date, end_date in zip(
-                    request.POST.getlist("stage_type[]"),
-                    request.POST.getlist("stage_start_date[]"),
-                    request.POST.getlist("stage_end_date[]"),
-                ):
+                for stage_type_id, start_date, end_date in zip(request.POST.getlist("stage_type[]"), request.POST.getlist("stage_start_date[]"), request.POST.getlist("stage_end_date[]")):
                     if not (stage_type_id and start_date and end_date):
                         continue
                     stage_type = EventStagesType.objects.filter(id=stage_type_id).first()
@@ -469,6 +466,53 @@ def edit_event(request, event_id):
                         start_date=start_date, end_date=end_date,
                     )
 
+                # ATUALIZA REQUISITOS E NOTIFICAÇÕES DE TODOS OS INSCRITOS ATIVOS
+                active_subscriptions = EventSubscription.objects.filter(
+                    event=event,
+                    status="INSCRITO"
+                )
+
+                for subscription in active_subscriptions:
+
+                    # DELETA REQUISITOS ANTIGOS — as tasks antigas vão buscar o requirement_id
+                    # que não existe mais e retornarão sem enviar (Abordagem 3)
+                    subscription.stage_requirements.all().delete()
+                    
+                    # RECRIA REQUISITOS E REAGENDA TASKS COM AS NOVAS ETAPAS
+                    for stage in event.stages.all():
+
+                        if stage.end_date <= now:
+                            UserStageRequirement.objects.create(
+                                event_stage=stage,
+                                subscription=subscription,
+                                is_completed=False,
+                            )
+                            continue
+
+                        requirement = UserStageRequirement.objects.create(
+                            event_stage=stage,
+                            subscription=subscription,
+                            is_completed=False,
+                        )
+
+                        if stage.start_date > now:
+                            notify_stage_starting.apply_async(
+                                args=[requirement.id],
+                                eta=stage.start_date,
+                            )
+
+                        warning_time = stage.end_date - timedelta(hours=24)
+                        if warning_time > now:
+                            notify_stage_ending_soon.apply_async(
+                                args=[requirement.id],
+                                eta=warning_time,
+                            )
+
+                        notify_stage_expired.apply_async(
+                            args=[requirement.id],
+                            eta=stage.end_date,
+                        )
+                
                 # PREÇOS — apaga e recria
                 event.prices.all().delete()
                 for category, batch, price in zip(
