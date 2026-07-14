@@ -334,7 +334,7 @@ def edit_event(request, event_id):
             list(event.categories.values_list("id", flat=True))
         ),
         "stages_data": json.dumps([
-            [str(s[0]), s[1].strftime("%Y-%m-%dT%H:%M"), s[2].strftime("%Y-%m-%dT%H:%M")]
+            [str(s[0]), timezone.localtime(s[1]).strftime("%Y-%m-%dT%H:%M"), timezone.localtime(s[2]).strftime("%Y-%m-%dT%H:%M")]
             for s in existing_stages
         ]),
         "prices_data": json.dumps([
@@ -476,7 +476,7 @@ def edit_event(request, event_id):
 
                     # DELETA REQUISITOS ANTIGOS — as tasks antigas vão buscar o requirement_id
                     # que não existe mais e retornarão sem enviar (Abordagem 3)
-                    subscription.stage_requirements.all().delete()
+                    subscription.requirements.all().delete()
                     
                     # RECRIA REQUISITOS E REAGENDA TASKS COM AS NOVAS ETAPAS
                     for stage in event.stages.all():
