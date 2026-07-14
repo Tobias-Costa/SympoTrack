@@ -449,6 +449,7 @@ class EventSubscription(models.Model):
 
     STATUS_CHOICES = [
         ("INSCRITO", _("Inscrito")),
+        ("FINALIZADO", _("Finalizado")),
         ("EXPIRADO", _("Expirado")),
         ("CANCELADO", _("Cancelado")),
     ]

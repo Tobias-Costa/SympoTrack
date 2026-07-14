@@ -46,16 +46,16 @@ def home(request):
 
     events = paginator.get_page(page_number)
 
-    #Criação do ooleano 'is_subscribed' para cada evento da lista
+    #Criação do booleano 'is_subscribed' para cada evento da lista
     for event in events:
         # Verifica se o id do usuário logado está na lista de inscrições ativas daquele evento
         event.is_subscribed = event.subscriptions.filter(
             user=request.user, 
-            status="INSCRITO",
+            status__in=["INSCRITO", "FINALIZADO"],
         ).exists()
 
         event.subscribed_count = event.subscriptions.filter(
-            status="INSCRITO"
+            status__in=["INSCRITO", "FINALIZADO"],
         ).count()
 
     return render(request, "home.html", {"events":events})
@@ -469,10 +469,21 @@ def edit_event(request, event_id):
                 # ATUALIZA REQUISITOS E NOTIFICAÇÕES DE TODOS OS INSCRITOS ATIVOS
                 active_subscriptions = EventSubscription.objects.filter(
                     event=event,
-                    status="INSCRITO"
+                    status__in=["INSCRITO", "FINALIZADO"],
                 )
 
                 for subscription in active_subscriptions:
+
+                    # SE ESTAVA FINALIZADO E HÁ NOVAS ETAPAS — volta para INSCRITO
+                    if subscription.status == "FINALIZADO":
+                        old_stage_ids = set(subscription.requirements.values_list("event_stage_id", flat=True)
+)
+                        new_stage_ids = set(event.stages.values_list("id", flat=True))
+
+                        # SE HÁ ETAPAS NOVAS QUE O USUÁRIO AINDA NÃO TINHA — volta para INSCRITO
+                        if new_stage_ids - old_stage_ids:
+                            subscription.status = "INSCRITO"
+                            subscription.save()
 
                     # DELETA REQUISITOS ANTIGOS — as tasks antigas vão buscar o requirement_id
                     # que não existe mais e retornarão sem enviar (Abordagem 3)
@@ -485,7 +496,7 @@ def edit_event(request, event_id):
                             UserStageRequirement.objects.create(
                                 event_stage=stage,
                                 subscription=subscription,
-                                is_completed=False,
+                                is_completed=True,
                             )
                             continue
 
@@ -599,11 +610,11 @@ def event_detail(request, event_id):
 
     is_subscribed = event.subscriptions.filter(
         user=request.user,
-        status="INSCRITO",
+        status__in=["INSCRITO", "FINALIZADO"],
     ).exists()
 
     event.subscribed_count = event.subscriptions.filter(
-        status="INSCRITO"
+        status__in=["INSCRITO", "FINALIZADO"],
     ).count()
 
     return render(request, "event_detail.html", {
@@ -640,7 +651,7 @@ def subscribe_event(request, event_id):
 
             if subscription:
                 # JÁ INSCRITO OU CONFIRMADO — não faz nada
-                if subscription.status == "INSCRITO":
+                if subscription.status in ["INSCRITO", "FINALIZADO"]:
                     messages.warning(request, "Você já está inscrito neste evento.")
                     return redirect(request.META.get("HTTP_REFERER", "home"))
 
@@ -724,7 +735,7 @@ def unsubscribe_event(request, event_id):
         request.session['unsubscribe_back_url'] = request.GET['next']
 
     # PROTEÇÃO — só cancela se estiver inscrito ou confirmado
-    if subscription.status != "INSCRITO":
+    if subscription.status not in ["INSCRITO", "FINALIZADO"]:
         messages.warning(request, "Sua inscrição já está cancelada ou expirada.")
         return redirect(request.session.get('unsubscribe_back_url', 'home'))
 
@@ -761,6 +772,9 @@ def unsubscribe_event(request, event_id):
 
     return render(request, "cancel_subscription.html", {"subscription": subscription})
 
+@login_required
+def subscriptions_list(request):
+    return render(request, "subscriptions_list.html")
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 @login_required
