@@ -1,5 +1,6 @@
 from celery import shared_task
 from django.core.mail import send_mail
+from django.utils import timezone
 from .models import Notification
 from .models import EventSubscription, EventStage, UserStageRequirement
 
@@ -47,6 +48,8 @@ def notify_stage_starting(requirement_id):
     if subscription.status in ["EXPIRADO", "CANCELADO"]:
         return
 
+    end_date_local = timezone.localtime(requirement.event_stage.end_date)
+
     # SALVA NO BANCO
     Notification.objects.create(
         user=subscription.user,
@@ -55,7 +58,7 @@ def notify_stage_starting(requirement_id):
         message=(
             f"Olá, {subscription.user.get_full_name()}!\n\n"
             f"A etapa {requirement.event_stage.stage_type.name} do evento {subscription.event.title} acabou de começar.\n\n"
-            f"Prazo final: {requirement.event_stage.end_date.strftime('%d/%m/%Y %H:%M')}"
+            f"Prazo final: {end_date_local.strftime('%d/%m/%Y %H:%M')}"
         ),
     )
 
@@ -64,7 +67,7 @@ def notify_stage_starting(requirement_id):
         message=(
             f"Olá, {subscription.user.get_full_name()}!\n\n"
             f"A etapa {requirement.event_stage.stage_type.name} do evento {subscription.event.title} acabou de começar.\n\n"
-            f"Prazo final: {requirement.event_stage.end_date.strftime('%d/%m/%Y %H:%M')}"
+            f"Prazo final: {end_date_local.strftime('%d/%m/%Y %H:%M')}"
         ),
         from_email=None,
         recipient_list=[subscription.user.email],
@@ -92,6 +95,8 @@ def notify_stage_ending_soon(requirement_id):
     if requirement.is_completed:
         return
 
+    end_date_local = timezone.localtime(requirement.event_stage.end_date)
+    
     # SALVA NO BANCO
     Notification.objects.create(
         user=subscription.user,
@@ -100,7 +105,7 @@ def notify_stage_ending_soon(requirement_id):
         message=(
             f"Olá, {subscription.user.get_full_name()}!\n\n"
             f"A etapa {requirement.event_stage.stage_type.name} do evento {subscription.event.title} "
-            f"encerrará em {requirement.event_stage.end_date.strftime('%d/%m/%Y %H:%M')}.\n\n"
+            f"encerrará em {end_date_local.strftime('%d/%m/%Y %H:%M')}.\n\n"
             f"Não perca o prazo!"
         ),
     )
@@ -110,7 +115,7 @@ def notify_stage_ending_soon(requirement_id):
         message=(
             f"Olá, {subscription.user.get_full_name()}!\n\n"
             f"A etapa {requirement.event_stage.stage_type.name} do evento {subscription.event.title} "
-            f"encerrará em {requirement.event_stage.end_date.strftime('%d/%m/%Y %H:%M')}.\n\n"
+            f"encerrará em {end_date_local.strftime('%d/%m/%Y %H:%M')}.\n\n"
             f"Não perca o prazo!"
         ),
         from_email=None,
