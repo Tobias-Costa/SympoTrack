@@ -1,0 +1,349 @@
+{% extends 'allauth/layouts/base.html' %}
+
+{% load static %}
+
+<!-- ===================================================== -->
+<!-- TÍTULO -->
+<!-- ===================================================== -->
+{% block title %}
+Cancelar Inscrição
+{% endblock %}
+
+<!-- ===================================================== -->
+<!-- CONTEÚDO -->
+<!-- ===================================================== -->
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- ================================================= -->
+    <!-- CABEÇALHO -->
+    <!-- ================================================= -->
+
+    <div class="text-center mb-5">
+
+        <div class="mb-3">
+
+            <i class="bi bi-x-circle-fill text-danger"
+               style="font-size: clamp(3rem,5vw,4rem);"></i>
+
+        </div>
+
+        <h1 class="fw-bold">
+
+            Cancelar Inscrição
+
+        </h1>
+
+        <p class="text-muted">
+
+            Sua opinião é importante para nós. Informe o motivo do cancelamento.
+
+        </p>
+
+    </div>
+
+    <div class="row justify-content-center">
+
+        <!-- ================================================= -->
+        <!-- FORMULÁRIO -->
+        <!-- ================================================= -->
+
+        <div class="col-lg-8">
+
+            <div class="card global-card border-0 shadow-sm">
+
+                <div class="card-body p-5">
+
+                    <!-- ========================================= -->
+                    <!-- EVENTO -->
+                    <!-- ========================================= -->
+
+                    <div class="mb-5">
+
+                        <h3 class="fw-bold">
+
+                            {{ subscription.event.title }}
+
+                        </h3>
+
+                        <p class="text-muted mb-2">
+
+                            {{ subscription.event.place_name }}
+
+                        </p>
+
+                        <p class="text-muted">
+
+                            {{ subscription.event.city_name }}
+                            -
+                            {{ subscription.event.state_uf }}
+
+                        </p>
+
+                    </div>
+
+                    <!-- ========================================= -->
+                    <!-- ALERTA -->
+                    <!-- ========================================= -->
+
+                    <div class="alert alert-warning border">
+
+                        <div class="d-flex">
+
+                            <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+
+                            <div>
+
+                                <strong>
+
+                                    Atenção
+
+                                </strong>
+
+                                <br>
+
+                                Após confirmar, sua inscrição será cancelada
+                                e você deixará de receber notificações deste
+                                evento.
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+                        <!-- ===================================== -->
+                        <!-- MOTIVO -->
+                        <!-- ===================================== -->
+
+                        <div class="mb-5">
+
+                            <label class="form-label fw-bold">
+
+                                Motivo do cancelamento
+
+                            </label>
+
+                            <div class="mt-3">
+
+                                <div class="form-check mb-3">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="reason"
+                                        id="financial"
+                                        value="FINANCIAL"
+                                        required>
+
+                                    <label
+                                        class="form-check-label"
+                                        for="financial">
+
+                                        Problemas financeiros
+
+                                    </label>
+
+                                </div>
+
+                                <div class="form-check mb-3">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="reason"
+                                        id="schedule"
+                                        value="SCHEDULE">
+
+                                    <label
+                                        class="form-check-label"
+                                        for="schedule">
+
+                                        Conflito de agenda
+
+                                    </label>
+
+                                </div>
+
+                                <div class="form-check mb-3">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="reason"
+                                        id="interest"
+                                        value="NO_INTEREST">
+
+                                    <label
+                                        class="form-check-label"
+                                        for="interest">
+
+                                        Não tenho mais interesse
+
+                                    </label>
+
+                                </div>
+
+                                <div class="form-check mb-3">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="reason"
+                                        id="personal"
+                                        value="PERSONAL">
+
+                                    <label
+                                        class="form-check-label"
+                                        for="personal">
+
+                                        Motivos pessoais
+
+                                    </label>
+
+                                </div>
+
+                                <div class="form-check">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="reason"
+                                        id="other"
+                                        value="OTHER">
+
+                                    <label
+                                        class="form-check-label"
+                                        for="other">
+
+                                        Outro motivo
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ===================================== -->
+                        <!-- DESCRIÇÃO -->
+                        <!-- ===================================== -->
+
+                        <div class="mb-5">
+
+                            <label class="form-label fw-bold">
+
+                                Comentários
+
+                            </label>
+
+                            <textarea
+                                name="description"
+                                rows="5"
+                                class="form-control"
+                                placeholder="Conte-nos o motivo do cancelamento (opcional)."></textarea>
+
+                        </div>
+
+                        <!-- ===================================== -->
+                        <!-- FEEDBACK -->
+                        <!-- ===================================== -->
+
+                        <div class="mb-5">
+
+                            <label class="form-label fw-bold">
+
+                                Como foi sua experiência até aqui?
+
+                            </label>
+
+                            <select
+                                name="rating"
+                                class="form-select">
+
+                                <option value="">
+
+                                    Não desejo avaliar
+
+                                </option>
+
+                                <option value="5">
+
+                                    ⭐⭐⭐⭐⭐ Excelente
+
+                                </option>
+
+                                <option value="4">
+
+                                    ⭐⭐⭐⭐ Boa
+
+                                </option>
+
+                                <option value="3">
+
+                                    ⭐⭐⭐ Regular
+
+                                </option>
+
+                                <option value="2">
+
+                                    ⭐⭐ Ruim
+
+                                </option>
+
+                                <option value="1">
+
+                                    ⭐ Péssima
+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- ===================================== -->
+                        <!-- BOTÕES -->
+                        <!-- ===================================== -->
+
+                        <div class="d-grid d-md-flex justify-content-md-end gap-3">
+
+                            <a
+                                href="{{ request.session.unsubscribe_back_url|default:'/' }}"
+                                class="btn btn-outline-secondary">
+
+                                Voltar
+
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger">
+
+                                <i class="bi bi-x-circle me-2"></i>
+
+                                Confirmar Cancelamento
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

@@ -118,7 +118,7 @@ Home | SympoTrack
                         </a>
                         {% if event.is_subscribed %}
                             <!-- Botão Vermelho para Cancelar Inscrição -->
-                            <a href="{% url 'unsubscribe_event' event.id %}" class="btn btn-danger rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                            <a href="{% url 'unsubscribe_event' event.id %}?next={{ request.path }}" class="btn btn-danger rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
                                 <i class="bi bi-x-circle"></i>
                             </a>
                         {% else %}

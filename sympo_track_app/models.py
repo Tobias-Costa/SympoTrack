@@ -519,7 +519,11 @@ class CancellationReason(models.Model):
         related_name="cancellation_reasons",
     )
 
-    reason_text = models.TextField(_("Motivo"))
+    reason_text = models.CharField(_("Motivo"), max_length=100)
+
+    description = models.TextField(_("Descrição"), blank=True, null=True)
+
+    rating = models.IntegerField(_("Avaliação"), blank=True, null=True)
 
     created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
 
@@ -527,22 +531,13 @@ class CancellationReason(models.Model):
         verbose_name = _("Motivo de cancelamento")
         verbose_name_plural = _("Motivos de cancelamento")
 
+    def __str__(self):
+        return f"{self.subscription.user.username}({self.subscription.event.title}) - {self.created_at}"
+
 
 # -----------------------------------------------------------
 # NOTIFICAÇÕES
 # -----------------------------------------------------------
-
-
-# class NotificationsSubject(models.Model):
-#     message_subject = models.CharField(_("Assunto"), max_length=255)
-
-#     class Meta:
-#         verbose_name = _("Assunto da notificação")
-#         verbose_name_plural = _("Assuntos das notificações")
-
-#     def __str__(self):
-#         return self.message_subject
-
 
 class Notification(models.Model):
     user = models.ForeignKey(

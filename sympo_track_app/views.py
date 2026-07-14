@@ -19,6 +19,7 @@ from .models import (
     UserStageRequirement,
     ManagementGroup,
     ManagementGroupMember,
+    CancellationReason,
     )
 from django.conf import settings
 from django.utils import timezone
@@ -673,27 +674,49 @@ def unsubscribe_event(request, event_id):
         user=request.user
     )
 
+    # SALVA URL DE ORIGEM
+    # Se existir '?next=' na URL (ou seja, veio da Home ou Grupos), salva na sessão
+    if 'next' in request.GET:
+        request.session['unsubscribe_back_url'] = request.GET['next']
+
     # PROTEÇÃO — só cancela se estiver inscrito ou confirmado
-    if subscription.status not in ["INSCRITO", "CONFIRMADO", "PENDENTE"]:
+    if subscription.status != "INSCRITO":
         messages.warning(request, "Sua inscrição já está cancelada ou expirada.")
-        return redirect(request.META.get("HTTP_REFERER", "home"))
+        return redirect(request.session.get('unsubscribe_back_url', 'home'))
 
-    try:
-        with transaction.atomic():
+    if request.method == "POST":
+        cancellation_reason = request.POST.get("reason")
+        cancellation_description = request.POST.get("description")
+        rating = request.POST.get("rating")
 
-            # ATUALIZA STATUS PARA CANCELADO
-            subscription.status = "CANCELADO"
-            subscription.save()
+        if rating:
+                rating = int(rating)
 
-        # ENVIA EMAIL DE DESINSCRIÇÃO
-        notify_unsubscribe.delay(subscription.id)
+        try:
+            with transaction.atomic():
 
-        messages.success(request, f"Desinscrição do evento {event.title} realizada com sucesso.")
+                CancellationReason.objects.create(
+                    subscription=subscription,
+                    reason_text=cancellation_reason or None,
+                    description=cancellation_description or None,
+                    rating=rating or None,
+                )
 
-    except Exception:
-        messages.error(request, f"Erro ao cancelar inscrição")
+                # ATUALIZA STATUS PARA CANCELADO
+                subscription.status = "CANCELADO"
+                subscription.save()
 
-    return redirect(request.META.get("HTTP_REFERER", "home"))
+            # ENVIA EMAIL DE DESINSCRIÇÃO
+            notify_unsubscribe.delay(subscription.id)
+
+            messages.success(request, f"Desinscrição do evento {event.title} realizada com sucesso.")
+            return redirect(request.session.get('unsubscribe_back_url', 'home'))
+        except Exception as e:
+            messages.error(request, f"Erro ao cancelar inscrição")
+            return redirect(request.session.get('unsubscribe_back_url', 'home'))
+
+    return render(request, "cancel_subscription.html", {"subscription": subscription})
+
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 @login_required
