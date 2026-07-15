@@ -1,0 +1,464 @@
+{% extends 'allauth/layouts/base.html' %}
+
+{% load static %}
+
+<!-- ===================================================== -->
+<!-- TÍTULO -->
+<!-- ===================================================== -->
+{% block title %}
+Adicionar Membros
+{% endblock %}
+
+<!-- ===================================================== -->
+<!-- CONTEÚDO -->
+<!-- ===================================================== -->
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- ================================================ -->
+    <!-- CABEÇALHO -->
+    <!-- ================================================ -->
+
+    <div class="text-center mb-5">
+
+        <div class="mb-3">
+
+            <i class="bi bi-person-plus-fill text-primary"
+               style="font-size: clamp(3rem,5vw,4rem);"></i>
+
+        </div>
+
+        <h1 class="fw-bold">
+
+            Adicionar Membros
+
+        </h1>
+
+        <p class="text-muted">
+
+            {{ management_group.name }}
+
+        </p>
+
+    </div>
+
+
+    <div class="row justify-content-center">
+
+        <div class="col-xl-10">
+
+            <div class="card global-card border-0 shadow-sm">
+
+                <div class="card-body p-4 p-lg-5">
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+                        <!-- ==================================== -->
+                        <!-- USUÁRIO -->
+                        <!-- ==================================== -->
+
+                        <div class="mb-5">
+
+                            <h4 class="fw-bold mb-4">
+
+                                Novo Membro
+
+                            </h4>
+
+                            <div class="row g-4">
+
+                                <!-- Usuário -->
+
+                                <div class="col-lg-8">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Usuário
+
+                                    </label>
+
+                                    <select
+                                        name="user"
+                                        class="form-select">
+
+                                        <option value="">
+                                            ---
+                                        </option>
+
+                                        {% for user in users %}
+
+                                        <option value="{{ user.id }}">
+
+                                            {{ user.get_full_name|default:user.username }}
+
+                                            ({{ user.email }})
+
+                                        </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                </div>
+
+                                <!-- Cargo -->
+
+                                <div class="col-lg-4">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Cargo
+
+                                    </label>
+
+                                    <select
+                                        name="role"
+                                        class="form-select">
+
+                                        <option value="OWNER">
+
+                                            Proprietário
+
+                                        </option>
+
+                                        <option value="ADMIN">
+
+                                            Administrador
+
+                                        </option>
+
+                                        <option value="MANAGER">
+
+                                            Gestor
+
+                                        </option>
+
+                                        <option value="EDITOR">
+
+                                            Editor
+
+                                        </option>
+
+                                        <option value="VIEWER">
+
+                                            Visualizador
+
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ==================================== -->
+                        <!-- PERMISSÕES -->
+                        <!-- ==================================== -->
+
+                        <div class="mb-5">
+
+                            <h4 class="fw-bold mb-4">
+
+                                Permissões
+
+                            </h4>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+
+                                    <div class="form-check">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            checked
+                                            name="can_create_events">
+
+                                        <label
+                                            class="form-check-label">
+
+                                            Pode criar eventos
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <div class="form-check">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            checked
+                                            name="can_edit_events">
+
+                                        <label
+                                            class="form-check-label">
+
+                                            Pode editar eventos
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <div class="form-check">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="can_delete_events">
+
+                                        <label
+                                            class="form-check-label">
+
+                                            Pode excluir eventos
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <div class="form-check">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            checked
+                                            name="can_manage_members">
+
+                                        <label
+                                            class="form-check-label">
+
+                                            Pode gerenciar membros
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ==================================== -->
+                        <!-- OBSERVAÇÃO -->
+                        <!-- ==================================== -->
+
+                        <div class="mb-5">
+
+                            <label class="form-label fw-semibold">
+
+                                Observação
+
+                            </label>
+
+                            <textarea
+                                class="form-control"
+                                rows="4"
+                                name="note"
+                                placeholder="Mensagem opcional para o novo membro..."></textarea>
+
+                        </div>
+
+                        <!-- ==================================== -->
+                        <!-- BOTÕES -->
+                        <!-- ==================================== -->
+
+                        <div class="d-grid d-md-flex justify-content-md-end gap-3">
+
+                            <a href="{% url 'management_group_members' management_group.id %}"
+                               class="btn btn-outline-secondary">
+
+                                Cancelar
+
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-primary">
+
+                                <i class="bi bi-check-circle me-2"></i>
+
+                                Salvar e Adicionar Outro
+
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary">
+
+                                <i class="bi bi-person-plus-fill me-2"></i>
+
+                                Adicionar Membro
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================ -->
+            <!-- MEMBROS JÁ CADASTRADOS -->
+            <!-- ================================================ -->
+
+            <div class="card global-card border-0 shadow-sm mt-5">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+
+                        <h4 class="fw-bold mb-0">
+
+                            Membros Atuais
+
+                        </h4>
+
+                        <span class="badge bg-primary">
+
+                            {{ members.count }}
+
+                        </span>
+
+                    </div>
+
+                    {% if members %}
+
+                    <div class="table-responsive">
+
+                        <table class="table align-middle">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Nome</th>
+
+                                    <th>Email</th>
+
+                                    <th>Cargo</th>
+
+                                    <th class="text-end">
+
+                                        Ações
+
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for member in members %}
+
+                                <tr>
+
+                                    <td>
+
+                                        {{ member.user.get_full_name|default:member.user.username }}
+
+                                    </td>
+
+                                    <td>
+
+                                        {{ member.user.email }}
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="badge bg-secondary">
+
+                                            {{ member.role }}
+
+                                        </span>
+
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <a
+                                            href="{% url 'edit_group_member' management_group.id member.id %}"
+                                            class="btn btn-outline-warning btn-sm">
+
+                                            <i class="bi bi-pencil"></i>
+
+                                        </a>
+
+                                        <a
+                                            href="{% url 'remove_group_member' management_group.id member.id %}"
+                                            class="btn btn-outline-danger btn-sm">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="text-center py-5">
+
+                        <i class="bi bi-people"
+                           style="font-size:4rem;color:#ced4da;"></i>
+
+                        <h4 class="mt-3">
+
+                            Nenhum membro cadastrado.
+
+                        </h4>
+
+                        <p class="text-muted">
+
+                            Adicione o primeiro membro do grupo.
+
+                        </p>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

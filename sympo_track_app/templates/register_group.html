@@ -1,0 +1,415 @@
+{% extends 'allauth/layouts/base.html' %}
+
+{% load static %}
+
+<!-- ===================================================== -->
+<!-- TÍTULO -->
+<!-- ===================================================== -->
+{% block title %}
+Criar Grupo de Gerenciamento
+{% endblock %}
+
+<!-- ===================================================== -->
+<!-- CONTEÚDO -->
+<!-- ===================================================== -->
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- ================================================= -->
+    <!-- CABEÇALHO -->
+    <!-- ================================================= -->
+
+    <div class="text-center mb-5">
+
+        <div class="mb-3">
+
+            <i class="bi bi-people-fill text-primary"
+               style="font-size: clamp(3rem,5vw,4rem);"></i>
+
+        </div>
+
+        <h1 class="fw-bold mb-3">
+
+            Criar Grupo de Gerenciamento
+
+        </h1>
+
+        <p class="text-muted mb-0">
+
+            Crie um grupo para organizar eventos e gerenciar seus membros.
+
+        </p>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- FORMULÁRIO -->
+    <!-- ================================================= -->
+
+    <div class="row justify-content-center">
+
+        <div class="col-12 col-xl-10">
+
+            <div class="card global-card border-0 shadow-sm">
+
+                <div class="card-body p-4 p-lg-5">
+
+                    <form method="POST"
+                          enctype="multipart/form-data">
+
+                        {% csrf_token %}
+
+                        <!-- ===================================== -->
+                        <!-- DADOS DO GRUPO -->
+                        <!-- ===================================== -->
+
+                        <div class="mb-5">
+
+                            <h4 class="fw-bold mb-4">
+
+                                Informações Gerais
+
+                            </h4>
+
+                            <div class="row g-4">
+
+                                <!-- Nome -->
+
+                                <div class="col-md-8">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Nome do Grupo
+
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        class="form-control"
+                                        placeholder="Ex.: Grupo de Eventos da Engenharia"
+                                        required>
+
+                                </div>
+
+                                <!-- Sigla -->
+
+                                <div class="col-md-4">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Sigla
+
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="abbreviation"
+                                        class="form-control"
+                                        maxlength="15"
+                                        placeholder="Ex.: GEE">
+
+                                </div>
+
+                                <!-- Instituição -->
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Instituição
+
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="institution"
+                                        class="form-control"
+                                        placeholder="Universidade, Empresa ou Organização">
+
+                                </div>
+
+                                <!-- Privacidade -->
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Visibilidade
+
+                                    </label>
+
+                                    <select
+                                        name="visibility"
+                                        class="form-select">
+
+                                        <option value="PUBLIC">
+
+                                            Público
+
+                                        </option>
+
+                                        <option value="PRIVATE">
+
+                                            Privado
+
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- Logo -->
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Logo do Grupo
+
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        class="form-control"
+                                        name="image">
+
+                                </div>
+
+                                <!-- Email -->
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label fw-semibold">
+
+                                        E-mail para Contato
+
+                                    </label>
+
+                                    <input
+                                        type="email"
+                                        class="form-control"
+                                        name="email"
+                                        placeholder="grupo@email.com">
+
+                                </div>
+
+                                <!-- Site -->
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Website
+
+                                    </label>
+
+                                    <input
+                                        type="url"
+                                        class="form-control"
+                                        name="website"
+                                        placeholder="https://">
+
+                                </div>
+
+                                <!-- Telefone -->
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Telefone
+
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        name="phone">
+
+                                </div>
+
+                                <!-- Descrição -->
+
+                                <div class="col-12">
+
+                                    <label class="form-label fw-semibold">
+
+                                        Descrição
+
+                                    </label>
+
+                                    <textarea
+                                        rows="6"
+                                        class="form-control"
+                                        name="description"
+                                        placeholder="Explique o objetivo do grupo..."></textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ===================================== -->
+                        <!-- CONFIGURAÇÕES -->
+                        <!-- ===================================== -->
+
+                        <div class="mb-5">
+
+                            <h4 class="fw-bold mb-4">
+
+                                Configurações
+
+                            </h4>
+
+                            <div class="row g-4">
+
+                                <div class="col-md-6">
+
+                                    <div class="form-check">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            id="allow_events"
+                                            checked
+                                            name="allow_events">
+
+                                        <label
+                                            class="form-check-label"
+                                            for="allow_events">
+
+                                            Permitir criação de eventos
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <div class="form-check">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            id="allow_invites"
+                                            checked
+                                            name="allow_invites">
+
+                                        <label
+                                            class="form-check-label"
+                                            for="allow_invites">
+
+                                            Permitir convite de novos membros
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <div class="form-check">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            id="allow_public"
+                                            checked
+                                            name="allow_public">
+
+                                        <label
+                                            class="form-check-label"
+                                            for="allow_public">
+
+                                            Exibir grupo publicamente
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ===================================== -->
+                        <!-- MEMBROS -->
+                        <!-- ===================================== -->
+
+                        <div class="mb-5">
+
+                            <h4 class="fw-bold mb-4">
+
+                                Membros Iniciais
+
+                            </h4>
+
+                            <div class="alert alert-light border">
+
+                                Após criar o grupo você poderá adicionar
+                                administradores, gestores, editores e
+                                visualizadores.
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ===================================== -->
+                        <!-- BOTÕES -->
+                        <!-- ===================================== -->
+
+                        <div class="d-grid d-md-flex justify-content-md-end gap-3">
+
+                            <a href="{% url 'management_groups' %}"
+                               class="btn btn-outline-secondary px-4">
+
+                                Cancelar
+
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-primary px-4">
+
+                                <i class="bi bi-check-circle me-2"></i>
+
+                                Salvar e Criar Outro
+
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary px-4">
+
+                                <i class="bi bi-people-fill me-2"></i>
+
+                                Criar Grupo
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,326 @@
+{% extends 'allauth/layouts/base.html' %}
+
+{% load static %}
+
+<!-- ===================================================== -->
+<!-- TÍTULO -->
+<!-- ===================================================== -->
+{% block title %}
+Editar Membro
+{% endblock %}
+
+<!-- ===================================================== -->
+<!-- CONTEÚDO -->
+<!-- ===================================================== -->
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- ================================================= -->
+    <!-- CABEÇALHO -->
+    <!-- ================================================= -->
+
+    <div class="text-center mb-5">
+
+        <div class="mb-3">
+
+            <i class="bi bi-person-gear text-warning"
+               style="font-size: clamp(3rem,5vw,4rem);"></i>
+
+        </div>
+
+        <h1 class="fw-bold">
+
+            Editar Membro
+
+        </h1>
+
+        <p class="text-muted">
+
+            {{ management_group.name }}
+
+        </p>
+
+    </div>
+
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8">
+
+            <!-- ========================================= -->
+            <!-- DADOS DO MEMBRO -->
+            <!-- ========================================= -->
+
+            <div class="card global-card border-0 shadow-sm mb-4">
+
+                <div class="card-body p-5">
+
+                    <div class="d-flex align-items-center mb-4">
+
+                        <i class="bi bi-person-circle fs-1 text-primary me-3"></i>
+
+                        <div>
+
+                            <h3 class="fw-bold mb-1">
+
+                                {{ member.user.get_full_name|default:member.user.username }}
+
+                            </h3>
+
+                            <p class="text-muted mb-0">
+
+                                {{ member.user.email }}
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+                        <!-- ================================= -->
+                        <!-- CARGO -->
+                        <!-- ================================= -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                Cargo
+
+                            </label>
+
+                            <select
+                                name="role"
+                                class="form-select">
+
+                                <option value="OWNER"
+                                    {% if member.role == "OWNER" %}selected{% endif %}>
+
+                                    Proprietário
+
+                                </option>
+
+                                <option value="ADMIN"
+                                    {% if member.role == "ADMIN" %}selected{% endif %}>
+
+                                    Administrador
+
+                                </option>
+
+                                <option value="MANAGER"
+                                    {% if member.role == "MANAGER" %}selected{% endif %}>
+
+                                    Gestor
+
+                                </option>
+
+                                <option value="EDITOR"
+                                    {% if member.role == "EDITOR" %}selected{% endif %}>
+
+                                    Editor
+
+                                </option>
+
+                                <option value="VIEWER"
+                                    {% if member.role == "VIEWER" %}selected{% endif %}>
+
+                                    Visualizador
+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- ================================= -->
+                        <!-- PERMISSÕES -->
+                        <!-- ================================= -->
+
+                        <h5 class="fw-bold mb-3">
+
+                            Permissões
+
+                        </h5>
+
+                        <div class="row g-3 mb-5">
+
+                            <div class="col-md-6">
+
+                                <div class="form-check">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="can_create_events"
+                                        {% if member.can_create_events %}checked{% endif %}>
+
+                                    <label class="form-check-label">
+
+                                        Criar eventos
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <div class="form-check">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="can_edit_events"
+                                        {% if member.can_edit_events %}checked{% endif %}>
+
+                                    <label class="form-check-label">
+
+                                        Editar eventos
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <div class="form-check">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="can_delete_events"
+                                        {% if member.can_delete_events %}checked{% endif %}>
+
+                                    <label class="form-check-label">
+
+                                        Excluir eventos
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <div class="form-check">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="can_manage_members"
+                                        {% if member.can_manage_members %}checked{% endif %}>
+
+                                    <label class="form-check-label">
+
+                                        Gerenciar membros
+
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================= -->
+                        <!-- INFORMAÇÕES -->
+                        <!-- ================================= -->
+
+                        <div class="alert alert-light border">
+
+                            <div class="row">
+
+                                <div class="col-md-6">
+
+                                    <strong>
+
+                                        Entrou no grupo
+
+                                    </strong>
+
+                                    <br>
+
+                                    {{ member.created_at|date:"d/m/Y H:i" }}
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <strong>
+
+                                        Última atualização
+
+                                    </strong>
+
+                                    <br>
+
+                                    {{ member.updated_at|date:"d/m/Y H:i" }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================= -->
+                        <!-- BOTÕES -->
+                        <!-- ================================= -->
+
+                        <div class="d-grid d-md-flex justify-content-md-end gap-3 mt-5">
+
+                            <a href="{% url 'management_group_members' management_group.id %}"
+                               class="btn btn-outline-secondary">
+
+                                <i class="bi bi-arrow-left me-2"></i>
+
+                                Cancelar
+
+                            </a>
+
+                            <a href="{% url 'remove_group_member' management_group.id member.id %}"
+                               class="btn btn-outline-danger">
+
+                                <i class="bi bi-trash me-2"></i>
+
+                                Remover
+
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary">
+
+                                <i class="bi bi-check-circle me-2"></i>
+
+                                Salvar Alterações
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
