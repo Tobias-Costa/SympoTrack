@@ -995,6 +995,10 @@ def confirm_stage(request, requirement_id):
 @login_required
 def management_groups(request):
     user_groups = ManagementGroup.objects.filter(members=request.user).distinct()
+
+    for group in user_groups:
+        group.num_events = Event.objects.filter(group=group).count()
+
     context = {"management_groups": user_groups}
     return render(request, "management_groups.html", context=context)
 
@@ -1030,6 +1034,47 @@ def register_management_group(request):
             messages.error(request, "Ocorreu um erro ao criar o grupo.")
 
     return render(request, "register_group.html")
+
+
+@login_required
+def management_group_events(request, group_id):
+
+    # Busca o grupo apenas se o usuário for membro
+    management_group = get_object_or_404(
+        ManagementGroup.objects.filter(members=request.user),
+        id=group_id,
+    )
+
+    # Busca os eventos do grupo
+    events = Event.objects.filter(group=management_group).order_by("-created_at")
+
+    # Adiciona informações extras para o template
+    for event in events:
+
+        # Descobre o período do evento
+        period = EventStage.objects.filter(event=event).aggregate(
+            start_date=Min("start_date"),
+            end_date=Max("end_date"),
+        )
+
+        event.start_date = period["start_date"]
+        event.end_date = period["end_date"]
+
+        # Conta apenas os inscritos ativos
+        event.active_subscriptions = event.subscriptions.filter(
+            status__in=["INSCRITO", "FINALIZADO"]
+        ).count()
+
+    context = {
+        "management_group": management_group,
+        "events": events,
+    }
+
+    return render(
+        request,
+        "management_group_events.html",
+        context,
+    )
 
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------

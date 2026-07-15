@@ -58,21 +58,12 @@ Eventos do Grupo
 
         <div class="d-flex gap-2">
 
-            <a href="{% url 'register_group_member' management_group.id %}"
+            <a href="% url 'register_group_member' management_group.id %"
                class="btn btn-outline-success">
 
                 <i class="bi bi-person-plus me-2"></i>
 
                 Cadastrar Membro
-
-            </a>
-
-            <a href="{% url 'register_event' %}"
-               class="btn btn-primary">
-
-                <i class="bi bi-plus-circle me-2"></i>
-
-                Adicionar Evento
 
             </a>
 
@@ -212,7 +203,7 @@ Eventos do Grupo
                             <!-- INSCRITOS -->
                             <td>
 
-                                {{ event.subscriptions.count }}
+                                {{ event.active_subscriptions }}
 
                             </td>
 
@@ -221,7 +212,7 @@ Eventos do Grupo
 
                                 <!-- event_detail -->
                                 <a
-                                    href="{% url '#' event.id %}"
+                                    href="{% url 'event_detail' event.id %}?next={{ request.path }}"
                                     class="btn btn-outline-primary btn-sm">
 
                                     <i class="bi bi-eye me-1"></i>
@@ -230,9 +221,8 @@ Eventos do Grupo
 
                                 </a>
                                 
-                                <!-- edit_event -->
                                 <a
-                                    href="{% url '#' event.id %}"
+                                    href="{% url 'edit_event' event.id %}"
                                     class="btn btn-outline-warning btn-sm">
 
                                     <i class="bi bi-pencil"></i>
@@ -274,15 +264,6 @@ Eventos do Grupo
 
                 </p>
 
-                <a href="{% url 'register_event' %}"
-                   class="btn btn-primary mt-3">
-
-                    <i class="bi bi-plus-circle me-2"></i>
-
-                    Criar Primeiro Evento
-
-                </a>
-
             </div>
 
             {% endif %}
@@ -301,26 +282,16 @@ Eventos do Grupo
 
 document.addEventListener("DOMContentLoaded", function(){
 
-    const input =
-        document.getElementById("searchEvent");
+    const input = document.getElementById("searchEvent");
 
     if(!input) return;
 
     input.addEventListener("keyup", function(){
 
-        const filtro =
-            this.value.toLowerCase();
+        const filtro = this.value.toLowerCase();
 
-        document.querySelectorAll(".event-row")
-        .forEach(function(row){
-
-            row.style.display =
-                row.innerText
-                .toLowerCase()
-                .includes(filtro)
-                    ? ""
-                    : "none";
-
+        document.querySelectorAll(".event-row").forEach(function(row){
+            row.style.display = row.innerText.toLowerCase().includes(filtro)? "": "none";
         });
 
     });

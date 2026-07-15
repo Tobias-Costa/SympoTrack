@@ -143,7 +143,7 @@ Grupos de Gerenciamento
 
                                         <strong>
 
-                                            {{ group.events.count }}
+                                            {{ group.num_events }}
 
                                         </strong>
 
@@ -163,7 +163,7 @@ Grupos de Gerenciamento
 
                         <!-- BOTÃO -->
                         <div class="card-footer bg-white border-0">
-                            <a href="% url 'management_group_events' group.id %"
+                            <a href="{% url 'management_group_events' group.id %}"
                                class="btn btn-outline-primary w-100">
 
                                 Abrir Grupo

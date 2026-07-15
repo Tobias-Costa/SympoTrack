@@ -15,4 +15,5 @@ urlpatterns = [
     path("unsubscribe/event/<int:event_id>", views.unsubscribe_event, name="unsubscribe_event"),
     path("groups/list", views.management_groups, name="management_groups"),
     path("register/group", views.register_management_group, name="register_management_group"),
+    path("group/events/<int:group_id>", views.management_group_events, name="management_group_events"),
 ]
