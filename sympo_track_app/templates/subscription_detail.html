@@ -1,0 +1,268 @@
+{% extends 'allauth/layouts/base.html' %}
+{% load static %}
+
+{% block title %}Minha Inscrição — {{ subscription.event.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- CABEÇALHO -->
+    <div class="text-center mb-5">
+        <i class="bi bi-journal-check text-primary"
+           style="font-size: clamp(3rem,5vw,4rem);"></i>
+        <h1 class="fw-bold mt-3">{{ subscription.event.title }}</h1>
+        <p class="text-muted">Acompanhe todas as informações da sua inscrição.</p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- COLUNA PRINCIPAL -->
+        <div class="col-lg-8">
+
+            <!-- STATUS E PROGRESSO -->
+            <div class="card global-card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0">Status da Inscrição</h4>
+                        <span class="badge fs-6
+                            {% if subscription.status == 'INSCRITO' %}bg-primary
+                            {% elif subscription.status == 'FINALIZADO' %}bg-info
+                            {% elif subscription.status == 'EXPIRADO' %}bg-danger
+                            {% elif subscription.status == 'CANCELADO' %}bg-secondary
+                            {% endif %}">
+                            {{ subscription.get_status_display }}
+                        </span>
+                    </div>
+
+                    <!-- BARRA DE PROGRESSO -->
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Progresso geral</small>
+                        <small class="text-muted">{{ completed }}/{{ total }} etapas</small>
+                    </div>
+                    <div class="progress mb-2" style="height:10px;">
+                        <div class="progress-bar bg-success"
+                             role="progressbar"
+                             style="width: {{ progress }}%">
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ progress }}% concluído</small>
+
+                </div>
+            </div>
+
+            <!-- PRÓXIMA ETAPA -->
+            {% if next_stage %}
+            <div class="card global-card border-0 shadow-sm mb-4 border-start border-4 border-primary">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-1">
+                        <i class="bi bi-arrow-right-circle text-primary me-2"></i>
+                        Próxima etapa
+                    </h5>
+                    <p class="fw-semibold mb-1">{{ next_stage.event_stage.stage_type }}</p>
+                    {% if next_stage.waiting %}
+                        <small class="text-muted">
+                            Abre em {{ next_stage.event_stage.start_date|date:"d/m/Y \à\s H:i" }}
+                        </small>
+                    {% else %}
+                        <small class="text-warning fw-semibold">
+                            Em andamento — encerra em {{ next_stage.event_stage.end_date|date:"d/m/Y \à\s H:i" }}
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- TIMELINE DAS ETAPAS -->
+            <div class="card global-card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+
+                    <h4 class="fw-bold mb-4">Cronograma</h4>
+
+                    {% for requirement in confirmations %}
+                    <div class="d-flex gap-3 mb-4">
+
+                        <!-- ÍCONE -->
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width:36px; height:36px; min-width:36px;
+                                 background:
+                                    {% if requirement.is_completed %}#198754
+                                    {% elif requirement.can_confirm %}#0d6efd
+                                    {% elif requirement.expired %}#dc3545
+                                    {% else %}#6c757d{% endif %}">
+                                <i class="bi text-white
+                                    {% if requirement.is_completed %}bi-check-lg
+                                    {% elif requirement.can_confirm %}bi-circle-fill
+                                    {% elif requirement.expired %}bi-x-lg
+                                    {% else %}bi-lock{% endif %}">
+                                </i>
+                            </div>
+                            {% if not forloop.last %}
+                            <div style="width:2px; flex:1; background:#dee2e6; margin-top:4px;"></div>
+                            {% endif %}
+                        </div>
+
+                        <!-- CONTEÚDO -->
+                        <div class="pb-4 flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div>
+                                    <h5 class="fw-bold mb-1">
+                                        {{ requirement.event_stage.stage_type }}
+                                    </h5>
+                                    <small class="text-muted">
+                                        {{ requirement.event_stage.start_date|date:"d/m/Y H:i" }}
+                                        até
+                                        {{ requirement.event_stage.end_date|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+
+                                <!-- BADGE / BOTÃO -->
+                                {% if requirement.is_completed %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Concluída
+                                    </span>
+                                {% elif requirement.can_confirm %}
+                                    <a href="{% url 'confirm_stage' requirement.id %}"
+                                       class="btn btn-success btn-sm">
+                                        <i class="bi bi-check-circle me-1"></i>Confirmar etapa
+                                    </a>
+                                {% elif requirement.waiting %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-hourglass me-1"></i>Aguardando abertura
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle me-1"></i>Expirada
+                                    </span>
+                                {% endif %}
+
+                            </div>
+                        </div>
+
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">Nenhuma etapa cadastrada.</p>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <!-- NOTIFICAÇÕES -->
+            <div class="card global-card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <h4 class="fw-bold mb-4">Atualizações</h4>
+
+                    <ul class="list-group list-group-flush">
+                        {% for notification in notifications %}
+                        <li class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <i class="bi bi-bell-fill text-primary me-2"></i>
+                                    <strong>{{ notification.title }}</strong>
+                                    <p class="text-muted mb-0 mt-1">{{ notification.message }}</p>
+                                </div>
+                                <small class="text-muted text-nowrap ms-3">
+                                    {{ notification.created_at|date:"d/m H:i" }}
+                                </small>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item px-0 text-muted">
+                            Nenhuma atualização disponível.
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-4">
+
+            <!-- CARD DO EVENTO -->
+            <div class="card global-card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+
+                    <h4 class="fw-bold mb-4">Evento</h4>
+
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-geo-alt-fill text-danger me-2 fs-5"></i>
+                        <div>
+                            <div class="fw-semibold">{{ subscription.event.address.place_name }}</div>
+                            <small class="text-muted">
+                                {{ subscription.event.address.city.name }} -
+                                {{ subscription.event.address.city.state.uf }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-calendar-event text-primary me-2 fs-5"></i>
+                        <div>
+                            <small class="text-muted d-block">
+                                {{ subscription.event.min_start_date|date:"d/m/Y H:i" }}
+                            </small>
+                            <small class="text-muted d-block">
+                                até {{ subscription.event.max_end_date|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                    </div>
+
+                    {% if subscription.event.group %}
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-people-fill text-success me-2 fs-5"></i>
+                        <div>
+                            <div class="fw-semibold">{{ subscription.event.group.name }}</div>
+                            <small class="text-muted">Organização</small>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- PROGRESSO NO CARD -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Progresso</small>
+                            <small class="text-muted">{{ progress }}%</small>
+                        </div>
+                        <div class="progress" style="height:8px;">
+                            <div class="progress-bar bg-success"
+                                 role="progressbar"
+                                 style="width: {{ progress }}%">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- AÇÕES -->
+            <div class="d-grid gap-3">
+                <a href="{% url 'event_detail' subscription.event.id %}?next={{ request.path }}"
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-eye me-2"></i>Ver Evento
+                </a>
+
+                {% if subscription.status == "INSCRITO" %}
+                <a href="{% url 'unsubscribe_event' subscription.event.id %}?next={{ request.path }}"
+                   class="btn btn-outline-danger">
+                    <i class="bi bi-x-circle me-2"></i>Cancelar Inscrição
+                </a>
+                {% endif %}
+
+                <a href="{% url 'subscriptions_list' %}"
+                   class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Voltar
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

@@ -20,6 +20,7 @@ from .models import (
     ManagementGroup,
     ManagementGroupMember,
     CancellationReason,
+    Notification,
     )
 from django.conf import settings
 from django.utils import timezone
@@ -547,12 +548,6 @@ def edit_event(request, event_id):
     return render(request, "edit_event.html", context)
 
 @login_required
-def management_groups(request):
-    user_groups = ManagementGroup.objects.filter(members=request.user)
-    context = {"management_groups": user_groups}
-    return render(request, "management_groups.html", context=context)
-
-@login_required
 def event_detail(request, event_id):
     event = get_object_or_404(
         Event.objects.select_related(
@@ -678,7 +673,7 @@ def subscribe_event(request, event_id):
                     UserStageRequirement.objects.create(
                         event_stage=stage,
                         subscription=subscription,
-                        is_completed=False,
+                        is_completed=True,
                     )
                     continue
 
@@ -826,7 +821,119 @@ def subscriptions_list(request):
     
     return render(request, "subscriptions_list.html", {"subscriptions": subscriptions,})
 
+@login_required
+def subscription_detail(request, subscription_id):
+    subscription = get_object_or_404(
+        EventSubscription.objects.select_related(
+            "event__address__city__state",
+            "event__language",
+            "event__group",
+            "user",
+        ),
+        id=subscription_id,
+        user=request.user,
+    )
 
+    now = timezone.now()
+
+    # DATAS DO EVENTO
+    event_dates = EventStage.objects.filter(
+        event=subscription.event
+    ).aggregate(
+        start_date=Min("start_date"),
+        end_date=Max("end_date"),
+    )
+    subscription.event.min_start_date = event_dates["start_date"]
+    subscription.event.max_end_date   = event_dates["end_date"]
+
+    # REQUISITOS COM LÓGICA DE ESTADO
+    confirmations = UserStageRequirement.objects.filter(
+        subscription=subscription
+    ).select_related("event_stage__stage_type").order_by("event_stage__start_date")
+
+    for requirement in confirmations:
+        stage = requirement.event_stage
+
+        requirement.can_confirm = (
+            not requirement.is_completed
+            and stage.start_date <= now <= stage.end_date
+        )
+        requirement.expired = (
+            not requirement.is_completed
+            and stage.end_date < now
+        )
+        requirement.waiting = now < stage.start_date
+
+    # BARRA DE PROGRESSO
+    total     = confirmations.count()
+    completed = confirmations.filter(is_completed=True).count()
+    progress  = int(completed * 100 / total) if total else 0
+
+    # PRÓXIMA ETAPA
+    next_stage = UserStageRequirement.objects.filter(
+        subscription=subscription,
+        is_completed=False,
+        event_stage__end_date__gte=now,
+    ).select_related("event_stage__stage_type").order_by(
+        "event_stage__start_date"
+    ).first()
+
+    # NOTIFICAÇÕES
+    notifications = Notification.objects.filter(
+        user=request.user
+    ).order_by("-created_at")[:10]
+
+    return render(request, "subscription_detail.html", {
+        "subscription": subscription,
+        "confirmations": confirmations,
+        "notifications": notifications,
+        "progress":      progress,
+        "completed":     completed,
+        "total":         total,
+        "next_stage":    next_stage,
+    })
+
+@login_required
+def confirm_stage(request, requirement_id):
+    requirement = get_object_or_404(
+        UserStageRequirement,
+        id=requirement_id,
+        subscription__user=request.user,
+    )
+
+    # PROTEÇÃO — inscrição cancelada ou expirada não pode confirmar etapas
+    if requirement.subscription.status in ["CANCELADO", "EXPIRADO"]:
+        messages.error(request, "Sua inscrição não está ativa.")
+        return redirect("subscription_detail", requirement.subscription.id)
+
+    now = timezone.now()
+
+    if not (requirement.event_stage.start_date <= now <= requirement.event_stage.end_date):
+        messages.error(request, "Esta etapa não pode ser confirmada no momento.")
+        return redirect("subscription_detail", requirement.subscription.id)
+
+    if requirement.is_completed:
+        messages.warning(request, "Esta etapa já foi confirmada.")
+        return redirect("subscription_detail", requirement.subscription.id)
+
+    requirement.is_completed = True
+    requirement.save()
+
+    # VERIFICA SE TODAS AS ETAPAS FORAM CONCLUÍDAS
+    if not requirement.subscription.requirements.filter(is_completed=False).exists():
+        requirement.subscription.status = "FINALIZADO"
+        requirement.subscription.save()
+        messages.success(request, "Parabéns! Você concluiu todas as etapas do evento.")
+    else:
+        messages.success(request, "Etapa confirmada com sucesso.")
+
+    return redirect("subscription_detail", requirement.subscription.id)
+
+@login_required
+def management_groups(request):
+    user_groups = ManagementGroup.objects.filter(members=request.user)
+    context = {"management_groups": user_groups}
+    return render(request, "management_groups.html", context=context)
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 @login_required
