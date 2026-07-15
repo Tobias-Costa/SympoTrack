@@ -13,5 +13,6 @@ urlpatterns = [
     path("confirm/stage/<int:requirement_id>", views.confirm_stage, name="confirm_stage"),
     path("subscribe/event/<int:event_id>", views.subscribe_event, name="subscribe_event"),
     path("unsubscribe/event/<int:event_id>", views.unsubscribe_event, name="unsubscribe_event"),
-    path("manage/groups", views.management_groups, name="management_groups"),
+    path("groups/list", views.management_groups, name="management_groups"),
+    path("register/group", views.register_management_group, name="register_management_group"),
 ]

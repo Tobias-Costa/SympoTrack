@@ -14,6 +14,7 @@ from django.contrib.auth.models import (
 # USUÁRIO
 # -----------------------------------------------------------
 
+
 class UserManager(BaseUserManager):
     def _create_user(
         self, username, email, password, is_staff, is_superuser, **extra_fields
@@ -120,16 +121,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 class ManagementGroup(models.Model):
     name = models.CharField(_("Nome"), max_length=150)
 
-    description = models.TextField(verbose_name=_("Descrição"), blank=True)
+    description = models.TextField(verbose_name=_("Descrição"), blank=True, null=True)
 
-    created_at = models.DateTimeField(verbose_name=_("Data de criação"), auto_now_add=True)
+    created_at = models.DateTimeField(
+        verbose_name=_("Data de criação"), auto_now_add=True
+    )
 
-    updated_at = models.DateTimeField(verbose_name=_("Última atualização"), auto_now=True)
+    updated_at = models.DateTimeField(
+        verbose_name=_("Última atualização"), auto_now=True
+    )
 
     members = models.ManyToManyField(
-        User,
-        through="ManagementGroupMember",
-        related_name="management_groups"
+        User, through="ManagementGroupMember", related_name="management_groups"
     )
 
     class Meta:
@@ -148,7 +151,6 @@ class ManagementGroupMember(models.Model):
         EDITOR = "EDITOR", "Editor"
         VIEWER = "VIEWER", "Visualizador"
 
-
     group = models.ForeignKey(
         ManagementGroup,
         verbose_name=_("Grupo"),
@@ -160,11 +162,7 @@ class ManagementGroupMember(models.Model):
         "User", verbose_name=_("Usuário"), on_delete=models.CASCADE
     )
 
-    role = models.CharField(
-        max_length=20,
-        choices=Role.choices,
-        default=Role.VIEWER
-    )
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.VIEWER)
 
     joined_at = models.DateTimeField(auto_now_add=True)
 
@@ -174,7 +172,7 @@ class ManagementGroupMember(models.Model):
         unique_together = ("group", "user")
 
     def __str__(self):
-            return f"{self.group} - {self.user.first_name}({self.role})"
+        return f"{self.group} - {self.user.first_name}({self.role})"
 
 
 # -----------------------------------------------------------
@@ -281,9 +279,9 @@ class EventCategoriesArea(models.Model):
     college = models.CharField(_("Colégio"), max_length=8, choices=College.choices)
 
     class Meta:
-            verbose_name = _("Área de categoria do evento")
-            verbose_name_plural = _("Áreas de categorias dos eventos")
-    
+        verbose_name = _("Área de categoria do evento")
+        verbose_name_plural = _("Áreas de categorias dos eventos")
+
     def __str__(self):
         return self.name
 
@@ -344,12 +342,12 @@ class Event(models.Model):
     )
 
     group = models.ForeignKey(
-            ManagementGroup,
-            verbose_name=_("Grupo"),
-            on_delete=models.SET_NULL,
-            related_name="management_groups",
-            null=True,
-            blank=True,
+        ManagementGroup,
+        verbose_name=_("Grupo"),
+        on_delete=models.SET_NULL,
+        related_name="management_groups",
+        null=True,
+        blank=True,
     )
 
     created_at = models.DateTimeField(_("Data de criação"), auto_now_add=True)
@@ -493,7 +491,8 @@ class UserStageRequirement(models.Model):
     )
 
     subscription = models.ForeignKey(
-        EventSubscription, verbose_name=_("Inscrição"),
+        EventSubscription,
+        verbose_name=_("Inscrição"),
         on_delete=models.CASCADE,
         related_name="requirements",
     )
@@ -509,7 +508,7 @@ class UserStageRequirement(models.Model):
         verbose_name_plural = _("Requisitos das etapas")
 
     def __str__(self):
-            return f"{self.event_stage.stage_type}({self.event_stage.event.title}) - {self.subscription.user}"
+        return f"{self.event_stage.stage_type}({self.event_stage.event.title}) - {self.subscription.user}"
 
 
 class CancellationReason(models.Model):
@@ -539,6 +538,7 @@ class CancellationReason(models.Model):
 # -----------------------------------------------------------
 # NOTIFICAÇÕES
 # -----------------------------------------------------------
+
 
 class Notification(models.Model):
     user = models.ForeignKey(
