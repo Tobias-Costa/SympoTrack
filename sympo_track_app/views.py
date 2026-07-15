@@ -774,7 +774,59 @@ def unsubscribe_event(request, event_id):
 
 @login_required
 def subscriptions_list(request):
-    return render(request, "subscriptions_list.html")
+    # Obtém os filtros enviados pelo formulário
+    search = request.GET.get("search", "").strip()
+    status = request.GET.get("status", "").strip()
+
+    # Busca as inscrições do usuário
+    subscriptions = EventSubscription.objects.filter(
+        user=request.user
+    ).order_by("-created_at")
+
+    # Pesquisa pelo título do evento
+    if search:
+        subscriptions = subscriptions.filter(
+            event__title__icontains=search
+        )
+
+    # Filtro por status
+    if status == "INSCRITO":
+        subscriptions = subscriptions.filter(status="INSCRITO")
+
+    elif status == "FINALIZADO":
+        subscriptions = subscriptions.filter(status="FINALIZADO")
+
+    elif status == "EXPIRADO":
+        subscriptions = subscriptions.filter(status="EXPIRADO")
+
+    elif status == "CANCELADO":
+        subscriptions = subscriptions.filter(status="CANCELADO")
+
+    # Descobre a próxima etapa de cada inscrição
+    for subscription in subscriptions:
+
+        requirement = subscription.requirements.filter(
+            is_completed=False
+        ).order_by(
+            "event_stage__start_date"
+        ).first()
+
+        if requirement:
+            subscription.next_stage = requirement.event_stage.stage_type.name
+        else:
+            subscription.next_stage = "Nenhuma"
+
+    # Paginação
+    paginator = Paginator(subscriptions, 10)
+
+    page = request.GET.get("page")
+
+    subscriptions = paginator.get_page(page)
+
+    
+    return render(request, "subscriptions_list.html", {"subscriptions": subscriptions,})
+
+
 
 # ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
 @login_required

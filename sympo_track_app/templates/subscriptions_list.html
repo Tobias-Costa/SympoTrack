@@ -1,0 +1,307 @@
+{% extends 'allauth/layouts/base.html' %}
+
+{% load static %}
+
+<!-- ===================================================== -->
+<!-- TÍTULO -->
+<!-- ===================================================== -->
+{% block title %}
+Minhas Inscrições
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- ================================================= -->
+    <!-- CABEÇALHO -->
+    <!-- ================================================= -->
+
+    <div class="text-center mb-5">
+
+        <div class="mb-3">
+
+            <i class="bi bi-ticket-perforated-fill text-primary"
+               style="font-size: clamp(3rem,5vw,4rem);"></i>
+
+        </div>
+
+        <h1 class="fw-bold">
+
+            Minhas Inscrições
+
+        </h1>
+
+        <p class="text-muted mb-0">
+
+            Acompanhe todos os eventos em que você está inscrito.
+
+        </p>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- FILTRO -->
+    <!-- ================================================= -->
+
+    <div class="card global-card border-0 shadow-sm mb-5">
+
+        <div class="card-body">
+
+            <form method="GET">
+
+                <div class="row g-3">
+
+                    <div class="col-lg-7">
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="search"
+                            value="{{ request.GET.search }}"
+                            placeholder="Pesquisar evento...">
+
+                    </div>
+
+                    <div class="col-lg-3">
+
+                        <select
+                            name="status"
+                            class="form-select">
+
+                            <option value="">
+
+                                Todos os status
+
+                            </option>
+
+                            <option value="INSCRITO">
+
+                                Inscrito
+
+                            </option>
+
+                            <option value="FINALIZADO">
+
+                                Finalizado
+
+                            </option>
+
+                            <option value="EXPIRADO">
+
+                                Expirado
+
+                            </option>
+
+                            <option value="CANCELADO">
+
+                                Cancelado
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-lg-2">
+
+                        <button
+                            class="btn btn-primary w-100">
+
+                            <i class="bi bi-search me-2"></i>
+
+                            Buscar
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- INSCRIÇÕES -->
+    <!-- ================================================= -->
+
+    {% if subscriptions %}
+
+        {% for subscription in subscriptions %}
+
+        <div class="card global-card border-0 shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <div class="row align-items-center">
+
+                    <!-- Evento -->
+
+                    <div class="col-lg-4">
+
+                        <h4 class="fw-bold mb-2">
+
+                            {{ subscription.event.title }}
+
+                        </h4>
+
+                        <p class="text-muted mb-0">
+
+                            {{ subscription.event.place_name }}
+
+                        </p>
+
+                    </div>
+
+                    <!-- Próxima etapa -->
+
+                    <div class="col-lg-3">
+
+                        <small class="text-muted">
+
+                            Próxima etapa
+
+                        </small>
+
+                        <h6 class="fw-semibold">
+
+                            {{ subscription.next_stage }}
+
+                        </h6>
+
+                    </div>
+
+                    <!-- Status -->
+
+                    <div class="col-lg-2">
+
+                        {% if subscription.status == "INSCRITO" %}
+
+                        <span class="badge bg-success">
+
+                            Inscrito
+
+                        </span>
+
+                        {% elif subscription.status == "FINALIZADO" %}
+
+                        <span class="badge bg-primary">
+
+                            Finalizado
+
+                        </span>
+
+                        {% elif subscription.status == "EXPIRADO" %}
+
+                        <span class="badge bg-warning">
+
+                            Expirado
+
+                        </span>
+
+                        {% else %}
+
+                        <span class="badge bg-danger">
+
+                            Cancelado
+
+                        </span>
+
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Botões -->
+
+                    <div class="col-lg-3 text-lg-end mt-4 mt-lg-0">
+
+                        <a
+                            href="% url 'subscription_detail' subscription.id %"
+                            class="btn btn-outline-primary">
+
+                            <i class="bi bi-eye me-2"></i>
+
+                            Acompanhar
+
+                        </a>
+
+                        {% if subscription.status == "INSCRITO" %}
+
+                        <a
+                            href="{% url 'unsubscribe_event' subscription.event.id %}?next={{ request.path }}"
+                            class="btn btn-outline-danger">
+
+                            <i class="bi bi-x-circle me-2"></i>
+
+                            Cancelar
+
+                        </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+        <a
+            href="{% url 'home' %}"
+            class="btn btn-primary mt-3">
+
+            <i class="bi bi-search me-2"></i>
+
+            Explorar Eventos
+
+        </a>
+
+    {% else %}
+
+    <div class="card global-card border-0 shadow-sm">
+
+        <div class="card-body text-center py-5">
+
+            <i class="bi bi-calendar-x"
+               style="font-size:5rem;color:#ced4da;"></i>
+
+            <h3 class="fw-bold mt-4">
+
+                Você ainda não possui inscrições.
+
+            </h3>
+
+            <p class="text-muted">
+
+                Explore os eventos disponíveis e faça sua primeira inscrição.
+
+            </p>
+
+            <a
+                href="{% url 'home' %}"
+                class="btn btn-primary mt-3">
+
+                <i class="bi bi-search me-2"></i>
+
+                Explorar Eventos
+
+            </a>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
