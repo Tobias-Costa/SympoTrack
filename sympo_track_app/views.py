@@ -77,7 +77,17 @@ def register_event(request):
     areas = EventCategoriesArea.objects.prefetch_related("categories").order_by(
         "college", "name"
     )
-    user_groups = ManagementGroup.objects.filter(members=request.user)
+
+    # Ao criar eventos, só aparecerá grupos dos quais o usuário é no mínimo gestor.
+    user_groups = ManagementGroup.objects.filter(
+        group_members__user=request.user,
+        group_members__role__in=[
+            ManagementGroupMember.Role.OWNER,
+            ManagementGroupMember.Role.ADMIN,
+            ManagementGroupMember.Role.MANAGER,
+        ]
+    ).distinct()
+    
     context = {
         "languages": languages,
         "groups": user_groups,
