@@ -38,6 +38,8 @@ Gerenciar Membros
 
         </div>
 
+        {% if is_editor %}
+
         <div class="mt-4 mt-lg-0">
 
             <a href="{% url 'register_group_member' management_group.id %}"
@@ -50,6 +52,8 @@ Gerenciar Membros
             </a>
 
         </div>
+
+        {% endif %}
 
     </div>
 
@@ -220,12 +224,6 @@ Gerenciar Membros
 
                             </option>
 
-                            <option value="EDITOR">
-
-                                Editor
-
-                            </option>
-
                             <option value="VIEWER">
 
                                 Visualizador
@@ -265,8 +263,6 @@ Gerenciar Membros
     <div class="card global-card border-0 shadow-sm">
 
         <div class="card-body">
-
-            {% if members %}
 
             <div class="table-responsive">
 
@@ -338,27 +334,37 @@ Gerenciar Membros
 
                             <td>
 
-                                {{ member.created_at|date:"d/m/Y" }}
+                                {{ member.joined_at|date:"d/m/Y" }}
 
                             </td>
 
                             <td class="text-end">
 
-                                <a
-                                    href="{% url 'edit_group_member' management_group.id member.id %}"
-                                    class="btn btn-outline-warning btn-sm">
+                                {% if is_editor and logged_member %}
 
-                                    <i class="bi bi-pencil"></i>
+                                    {% if member.role != "OWNER" %}
 
-                                </a>
+                                        {% if member.role != "ADMIN" or logged_member.role == "OWNER" %}
 
-                                <a
-                                    href="{% url 'remove_group_member' management_group.id member.id %}"
-                                    class="btn btn-outline-danger btn-sm">
+                                            <a href="{% url 'edit_group_member' management_group.id member.id %}"
+                                            class="btn btn-outline-warning btn-sm">
 
-                                    <i class="bi bi-trash"></i>
+                                                <i class="bi bi-pencil"></i>
 
-                                </a>
+                                            </a>
+
+                                            <a href="{% url 'remove_group_member' management_group.id member.id %}"
+                                            class="btn btn-outline-danger btn-sm">
+
+                                                <i class="bi bi-x-circle"></i>
+
+                                            </a>
+
+                                        {% endif %}
+
+                                    {% endif %}
+
+                                {% endif %}
 
                             </td>
 
@@ -371,38 +377,6 @@ Gerenciar Membros
                 </table>
 
             </div>
-
-            {% else %}
-
-            <div class="text-center py-5">
-
-                <i class="bi bi-people"
-                   style="font-size:5rem;color:#ced4da;"></i>
-
-                <h3 class="fw-bold mt-4">
-
-                    Nenhum membro encontrado
-
-                </h3>
-
-                <p class="text-muted">
-
-                    Adicione novos membros para começar a gerenciar seu grupo.
-
-                </p>
-
-                <a href="{% url 'register_group_member' management_group.id %}"
-                   class="btn btn-primary mt-3">
-
-                    <i class="bi bi-person-plus-fill me-2"></i>
-
-                    Adicionar Primeiro Membro
-
-                </a>
-
-            </div>
-
-            {% endif %}
 
         </div>
 
@@ -421,15 +395,6 @@ Gerenciar Membros
             <i class="bi bi-arrow-left me-2"></i>
 
             Voltar
-
-        </a>
-
-        <a href="{% url 'register_group_member' management_group.id %}"
-           class="btn btn-primary">
-
-            <i class="bi bi-person-plus-fill me-2"></i>
-
-            Novo Membro
 
         </a>
 

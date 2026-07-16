@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db import DatabaseError, transaction
 from django.db.models import Min, Max
 from .models import (
+    User,
     Language,
     State,
     City,
@@ -1045,6 +1046,12 @@ def management_group_events(request, group_id):
         id=group_id,
     )
 
+    logged_member = get_object_or_404(
+        ManagementGroupMember,
+        group=management_group,
+        user=request.user,
+    )
+
     # Busca os eventos do grupo
     events = Event.objects.filter(group=management_group).order_by("-created_at")
 
@@ -1068,6 +1075,7 @@ def management_group_events(request, group_id):
     context = {
         "management_group": management_group,
         "events": events,
+        "logged_member": logged_member,
     }
 
     return render(
@@ -1075,6 +1083,7 @@ def management_group_events(request, group_id):
         "management_group_events.html",
         context,
     )
+
 
 @login_required
 def edit_management_group(request, group_id):
@@ -1142,7 +1151,355 @@ def edit_management_group(request, group_id):
     )
 
 
-# ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DO REGISTER EVENT ------------------------
+@login_required
+def management_group_members(request, group_id):
+    # Busca o grupo e garante que exista
+    management_group = get_object_or_404(
+        ManagementGroup,
+        id=group_id,
+    )
+
+    # Verifica se o usuário pertence ao grupo
+    if not ManagementGroupMember.objects.filter(
+        group=management_group,
+        user=request.user,
+    ).exists():
+        messages.error(
+            request,
+            "Você não possui acesso a este grupo."
+        )
+        return redirect("management_groups")
+    
+    # Verifica se o usuário pode criar ou editar membros do grupo
+    is_editor =  ManagementGroupMember.objects.filter(
+        group=management_group,
+        user=request.user,
+        role__in=["OWNER", "ADMIN"],
+    ).exists()
+
+    logged_member = get_object_or_404(
+        ManagementGroupMember,
+        group=management_group,
+        user=request.user,
+    )
+
+    # Todos os membros do grupo
+    members = ManagementGroupMember.objects.filter(
+        group=management_group,
+    ).select_related("user")
+
+    # ---------------------------
+    # Filtros
+    # ---------------------------
+
+    search = request.GET.get("search", "").strip()
+
+    if search:
+        members = [
+            member for member in members
+            if search.lower() in member.user.get_full_name().lower()
+            or search.lower() in member.user.username.lower()
+            or search.lower() in member.user.email.lower()
+        ]
+
+    role = request.GET.get("role")
+
+    if role:
+        members = [
+            member for member in members
+            if member.role == role
+        ]
+
+    # ---------------------------
+    # Estatísticas
+    # ---------------------------
+
+    all_members = ManagementGroupMember.objects.filter(
+        group=management_group
+    )
+
+    context = {
+        "management_group": management_group,
+        "members": members,
+        "administrators": all_members.filter(role__in=["ADMIN","OWNER"]).count(),
+        "managers": all_members.filter(role="MANAGER").count(),
+        "viewers": all_members.filter(role="VIEWER").count(),
+        "is_editor": is_editor,
+        "logged_member": logged_member,
+    }
+
+    return render(
+        request,
+        "management_group_members.html",
+        context,
+    )
+
+
+@login_required
+def register_group_member(request, group_id):
+
+    management_group = get_object_or_404(
+        ManagementGroup,
+        id=group_id,
+    )
+
+    # Verifica se o usuário pertence ao grupo e se possui acesso à função
+    if not ManagementGroupMember.objects.filter(
+        group=management_group,
+        user=request.user,
+        role__in=["OWNER", "ADMIN"]
+    ).exists():
+
+        messages.error(request, "Você não possui acesso a esta funcionalidade.")
+
+        return redirect("management_groups")
+
+    if request.method == "POST":
+
+        try:
+
+            user = get_object_or_404(
+                User,
+                id=request.POST.get("user"),
+            )
+
+            role = request.POST.get("role")
+
+            # Evita duplicidade
+            if ManagementGroupMember.objects.filter(
+                group=management_group,
+                user=user,
+            ).exists():
+
+                messages.warning(
+                    request,
+                    "Este usuário já pertence ao grupo."
+                )
+
+            else:
+
+                ManagementGroupMember.objects.create(
+                    group=management_group,
+                    user=user,
+                    role=role,
+                )
+
+                messages.success(
+                    request,
+                    "Membro adicionado com sucesso."
+                )
+
+                # Botão "Salvar e adicionar outro"
+                if "continue" in request.POST:
+                    return redirect(
+                        "register_group_member",
+                        management_group.id,
+                    )
+
+                return redirect(
+                    "management_group_members",
+                    management_group.id,
+                )
+
+        except Exception:
+
+            messages.error(
+                request,
+                "Erro ao adicionar membro."
+            )
+
+    users = User.objects.exclude(
+        managementgroupmember__group=management_group
+    ).order_by(
+        "first_name",
+        "last_name",
+    )
+
+    members = ManagementGroupMember.objects.filter(
+        group=management_group
+    ).select_related(
+        "user"
+    )
+
+    context = {
+        "management_group": management_group,
+        "users": users,
+        "members": members,
+    }
+
+    return render(
+        request,
+        "register_group_member.html",
+        context,
+    )
+
+
+@login_required
+def edit_group_member(request, group_id, member_id):
+
+    management_group = get_object_or_404(
+        ManagementGroup,
+        id=group_id,
+    )
+
+    logged_member = get_object_or_404(
+        ManagementGroupMember,
+        group=management_group,
+        user=request.user,
+    )
+
+    member = get_object_or_404(
+        ManagementGroupMember,
+        id=member_id,
+        group=management_group,
+    )
+
+    # Apenas OWNER e ADMIN podem acessar
+    if logged_member.role not in ["OWNER", "ADMIN"]:
+
+        messages.error(
+            request,
+            "Você não possui permissão para editar membros."
+        )
+
+        return redirect(
+            "management_group_members",
+            management_group.id,
+        )
+
+    # OWNER nunca pode ser editado
+    if member.role == "OWNER":
+
+        messages.error(
+            request,
+            "O proprietário do grupo não pode ser editado."
+        )
+
+        return redirect(
+            "management_group_members",
+            management_group.id,
+        )
+
+    # ADMIN não pode editar ADMIN
+    if (
+        logged_member.role == "ADMIN"
+        and member.role == "ADMIN"
+    ):
+
+        messages.error(
+            request,
+            "Somente o proprietário pode editar administradores."
+        )
+
+        return redirect(
+            "management_group_members",
+            management_group.id,
+        )
+
+    if request.method == "POST":
+
+        member.role = request.POST.get("role")
+
+        member.save()
+
+        messages.success(
+            request,
+            "Membro atualizado com sucesso."
+        )
+
+        return redirect(
+            "management_group_members",
+            management_group.id,
+        )
+
+    context = {
+        "management_group": management_group,
+        "member": member,
+        "logged_member": logged_member,
+    }
+
+    return render(
+        request,
+        "edit_group_member.html",
+        context,
+    )
+
+
+@login_required
+def remove_group_member(request, group_id, member_id):
+
+    management_group = get_object_or_404(
+        ManagementGroup,
+        id=group_id,
+    )
+
+    logged_member = get_object_or_404(
+        ManagementGroupMember,
+        group=management_group,
+        user=request.user,
+    )
+
+    member = get_object_or_404(
+        ManagementGroupMember,
+        id=member_id,
+        group=management_group,
+    )
+
+    # Apenas OWNER e ADMIN
+    if logged_member.role not in ["OWNER", "ADMIN"]:
+
+        messages.error(
+            request,
+            "Você não possui permissão para remover membros."
+        )
+
+        return redirect(
+            "management_group_members",
+            management_group.id,
+        )
+
+    # OWNER nunca pode ser removido
+    if member.role == "OWNER":
+
+        messages.error(
+            request,
+            "O proprietário do grupo não pode ser removido."
+        )
+
+        return redirect(
+            "management_group_members",
+            management_group.id,
+        )
+
+    # ADMIN não remove ADMIN
+    if (
+        logged_member.role == "ADMIN"
+        and member.role == "ADMIN"
+    ):
+
+        messages.error(
+            request,
+            "Somente o proprietário pode remover administradores."
+        )
+
+        return redirect(
+            "management_group_members",
+            management_group.id,
+        )
+
+    member.delete()
+
+    messages.success(
+        request,
+        "Membro removido com sucesso."
+    )
+
+    return redirect(
+        "management_group_members",
+        management_group.id,
+    )
+
+# ------------------------ REGISTER VIEWS DE CAMPOS ADICIONAIS DE REGISTER_EVENT E EDIT_EVENT ------------------------
 @login_required
 def register_language(request):
     if request.method == "POST":

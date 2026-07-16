@@ -98,12 +98,7 @@ Editar Membro
                                 name="role"
                                 class="form-select">
 
-                                <option value="OWNER"
-                                    {% if member.role == "OWNER" %}selected{% endif %}>
-
-                                    Proprietário
-
-                                </option>
+                                {% if logged_member.role == "OWNER" %}
 
                                 <option value="ADMIN"
                                     {% if member.role == "ADMIN" %}selected{% endif %}>
@@ -112,17 +107,12 @@ Editar Membro
 
                                 </option>
 
+                                {% endif %}
+
                                 <option value="MANAGER"
                                     {% if member.role == "MANAGER" %}selected{% endif %}>
 
                                     Gestor
-
-                                </option>
-
-                                <option value="EDITOR"
-                                    {% if member.role == "EDITOR" %}selected{% endif %}>
-
-                                    Editor
 
                                 </option>
 
@@ -134,101 +124,6 @@ Editar Membro
                                 </option>
 
                             </select>
-
-                        </div>
-
-
-                        <!-- ================================= -->
-                        <!-- PERMISSÕES -->
-                        <!-- ================================= -->
-
-                        <h5 class="fw-bold mb-3">
-
-                            Permissões
-
-                        </h5>
-
-                        <div class="row g-3 mb-5">
-
-                            <div class="col-md-6">
-
-                                <div class="form-check">
-
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        name="can_create_events"
-                                        {% if member.can_create_events %}checked{% endif %}>
-
-                                    <label class="form-check-label">
-
-                                        Criar eventos
-
-                                    </label>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-6">
-
-                                <div class="form-check">
-
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        name="can_edit_events"
-                                        {% if member.can_edit_events %}checked{% endif %}>
-
-                                    <label class="form-check-label">
-
-                                        Editar eventos
-
-                                    </label>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-6">
-
-                                <div class="form-check">
-
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        name="can_delete_events"
-                                        {% if member.can_delete_events %}checked{% endif %}>
-
-                                    <label class="form-check-label">
-
-                                        Excluir eventos
-
-                                    </label>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-6">
-
-                                <div class="form-check">
-
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        name="can_manage_members"
-                                        {% if member.can_manage_members %}checked{% endif %}>
-
-                                    <label class="form-check-label">
-
-                                        Gerenciar membros
-
-                                    </label>
-
-                                </div>
-
-                            </div>
 
                         </div>
 
@@ -251,7 +146,7 @@ Editar Membro
 
                                     <br>
 
-                                    {{ member.created_at|date:"d/m/Y H:i" }}
+                                    {{ member.joined_at|date:"d/m/Y H:i" }}
 
                                 </div>
 
@@ -289,14 +184,18 @@ Editar Membro
 
                             </a>
 
+                            {% if logged_member.role == "OWNER" or member.role != "ADMIN" %}
+
                             <a href="{% url 'remove_group_member' management_group.id member.id %}"
                                class="btn btn-outline-danger">
 
-                                <i class="bi bi-trash me-2"></i>
+                                <i class="bi bi-x-circle me-2"></i>
 
                                 Remover
 
                             </a>
+
+                            {% endif %}
 
                             <button
                                 type="submit"

@@ -161,9 +161,11 @@ class ManagementGroupMember(models.Model):
         "User", verbose_name=_("Usuário"), on_delete=models.CASCADE
     )
 
-    role = models.CharField(max_length=20, choices=Role.choices, default=Role.VIEWER)
+    role = models.CharField(verbose_name=_("Cargo"), max_length=20, choices=Role.choices, default=Role.VIEWER)
 
-    joined_at = models.DateTimeField(auto_now_add=True)
+    joined_at = models.DateTimeField(verbose_name=_("Data de criação"), auto_now_add=True)
+
+    updated_at = models.DateTimeField(verbose_name=_("Última atualização"), auto_now=True)
 
     class Meta:
         verbose_name = _("Membro do grupo")

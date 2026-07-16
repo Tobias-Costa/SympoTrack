@@ -58,6 +58,8 @@ Eventos do Grupo
 
         <div class="d-flex gap-2">
 
+            {% if logged_member.role == "ADMIN" or logged_member.role == "OWNER" %}
+
 
             <a href="{% url 'edit_management_group' management_group.id %}"
                class="btn btn-outline-primary">
@@ -68,12 +70,14 @@ Eventos do Grupo
 
             </a>
 
+            {% endif %}
+
             <a href="{% url 'management_group_members' management_group.id %}"
                class="btn btn-outline-primary">
 
                 <i class="bi bi-person me-2"></i>
 
-                Gerenciar Membros
+                Membros
 
             </a>
 
@@ -230,6 +234,8 @@ Eventos do Grupo
                                     Visualizar
 
                                 </a>
+
+                                {% if logged_member.role != "VIEWER" %}
                                 
                                 <a
                                     href="{% url 'edit_event' event.id %}"
@@ -238,6 +244,8 @@ Eventos do Grupo
                                     <i class="bi bi-pencil"></i>
 
                                 </a>
+
+                                {% endif %}
 
                             </td>
 

@@ -31,7 +31,7 @@ DEBUG = bool(os.getenv("DEBUG"))
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS").split(",")
 AUTH_USER_MODEL = "sympo_track_app.User"
 LOGIN_URL = "/accounts/login/"
-LOGIN_REDIRECT_URL = ""
+LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 # Método de autenticação: email, username ou username_email
