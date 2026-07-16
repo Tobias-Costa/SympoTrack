@@ -148,7 +148,6 @@ class ManagementGroupMember(models.Model):
         OWNER = "OWNER", "Proprietário"
         ADMIN = "ADMIN", "Administrador"
         MANAGER = "MANAGER", "Gestor"
-        EDITOR = "EDITOR", "Editor"
         VIEWER = "VIEWER", "Visualizador"
 
     group = models.ForeignKey(

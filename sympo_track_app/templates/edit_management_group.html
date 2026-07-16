@@ -6,7 +6,7 @@
 <!-- TÍTULO -->
 <!-- ===================================================== -->
 {% block title %}
-Criar Grupo de Gerenciamento
+Editar Grupo de Gerenciamento
 {% endblock %}
 
 <!-- ===================================================== -->
@@ -31,13 +31,13 @@ Criar Grupo de Gerenciamento
 
         <h1 class="fw-bold mb-3">
 
-            Criar Grupo de Gerenciamento
+            Editar Grupo
 
         </h1>
 
-        <p class="text-muted mb-0">
+        <p class="text-muted">
 
-            Crie um grupo para organizar eventos e gerenciar seus membros.
+            {{ management_group.name }}
 
         </p>
 
@@ -87,6 +87,7 @@ Criar Grupo de Gerenciamento
                                     <input
                                         type="text"
                                         name="name"
+                                        value="{{management_group.name}}"
                                         class="form-control"
                                         maxlength="150"
                                         placeholder="Ex.: Grupo de Eventos da Engenharia"
@@ -110,7 +111,7 @@ Criar Grupo de Gerenciamento
                                         class="form-control"
                                         name="description"
                                         maxlength="1000"
-                                        placeholder="Explique o objetivo do grupo..."></textarea>
+                                        placeholder="Explique o objetivo do grupo...">{{ management_group.description }}</textarea>
 
                                 </div>
 
@@ -119,28 +120,6 @@ Criar Grupo de Gerenciamento
                         </div>
 
 
-                        <!-- ===================================== -->
-                        <!-- MEMBROS -->
-                        <!-- ===================================== -->
-
-                        <div class="mb-5">
-
-                            <h4 class="fw-bold mb-4">
-
-                                Membros
-
-                            </h4>
-
-                            <div class="alert alert-light border">
-
-                                Após criar o grupo você poderá adicionar
-                                administradores, gestores e
-                                visualizadores.
-
-                            </div>
-
-                        </div>
-
 
                         <!-- ===================================== -->
                         <!-- BOTÕES -->
@@ -148,7 +127,7 @@ Criar Grupo de Gerenciamento
 
                         <div class="d-grid d-md-flex justify-content-md-end gap-3">
 
-                            <a href="{% url 'management_groups' %}"
+                            <a href="{% url 'management_group_events' management_group.id %}"
                                class="btn btn-outline-secondary px-4">
 
                                 Cancelar
@@ -160,9 +139,9 @@ Criar Grupo de Gerenciamento
                                 type="submit"
                                 class="btn btn-primary px-4">
 
-                                <i class="bi bi-people-fill me-2"></i>
+                                <i class="bi bi-pencil-square me-2""></i>
 
-                                Criar Grupo
+                                Salvar Alterações
 
                             </button>
 

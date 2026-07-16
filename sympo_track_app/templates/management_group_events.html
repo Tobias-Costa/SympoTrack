@@ -58,12 +58,22 @@ Eventos do Grupo
 
         <div class="d-flex gap-2">
 
-            <a href="% url 'register_group_member' management_group.id %"
-               class="btn btn-outline-success">
 
-                <i class="bi bi-person-plus me-2"></i>
+            <a href="{% url 'edit_management_group' management_group.id %}"
+               class="btn btn-outline-primary">
 
-                Cadastrar Membro
+                <i class="bi bi-pencil-square me-2"></i>
+
+                Editar Grupo
+
+            </a>
+
+            <a href="{% url 'management_group_members' management_group.id %}"
+               class="btn btn-outline-primary">
+
+                <i class="bi bi-person me-2"></i>
+
+                Gerenciar Membros
 
             </a>
 

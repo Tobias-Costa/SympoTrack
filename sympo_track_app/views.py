@@ -293,7 +293,7 @@ def edit_event(request, event_id):
         and ManagementGroupMember.objects.filter(
             group=event.group,
             user=request.user,
-            role__in=["OWNER", "ADMIN", "MANAGER", "EDITOR"],
+            role__in=["OWNER", "ADMIN", "MANAGER"],
         ).exists()
     )
 
@@ -645,7 +645,7 @@ def event_detail(request, event_id):
         can_edit = ManagementGroupMember.objects.filter(
             group=event.group,
             user=request.user,
-            role__in=["OWNER", "ADMIN", "MANAGER", "EDITOR"],
+            role__in=["OWNER", "ADMIN", "MANAGER"],
         ).exists()
 
     is_subscribed = event.subscriptions.filter(
@@ -1074,6 +1074,71 @@ def management_group_events(request, group_id):
         request,
         "management_group_events.html",
         context,
+    )
+
+@login_required
+def edit_management_group(request, group_id):
+    # Busca o grupo
+    management_group = get_object_or_404(
+        ManagementGroup,
+        id=group_id
+    )
+
+    # Verifica se o usuário possui permissão
+    member = ManagementGroupMember.objects.filter(
+        group=management_group,
+        user=request.user,
+    ).first()
+
+    if not member or member.role not in ["OWNER", "ADMIN", "MANAGER"]:
+        messages.error(
+            request,
+            "Você não possui permissão para editar este grupo."
+        )
+        return redirect("management_groups")
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+
+        if not name:
+            messages.error(
+                request,
+                "Informe o nome do grupo."
+            )
+            return render(
+                request,
+                "edit_management_group.html",
+                {"management_group": management_group},
+            )
+
+        try:
+            management_group.name = name
+            management_group.description = description
+            management_group.save()
+
+            messages.success(
+                request,
+                "Grupo atualizado com sucesso."
+            )
+
+            return redirect(
+                "management_group_events",
+                management_group.id,
+            )
+
+        except Exception:
+            messages.error(
+                request,
+                "Erro ao atualizar o grupo."
+            )
+
+    return render(
+        request,
+        "edit_management_group.html",
+        {
+            "management_group": management_group,
+        },
     )
 
 
